@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --studio-bg: #f8fafc;
+    --studio-panel: #ffffff;
+    --studio-line: #e2e8f0;
+    --studio-line-strong: #cbd5e1;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+
+  body {
+    @apply min-h-screen bg-slate-50 text-slate-900 font-sans antialiased;
+  }
+
+  ::selection {
+    background: rgba(37, 99, 235, .16);
+    color: #0f172a;
+  }
+}
+
+@layer components {
+  .studio-shell {
+    @apply min-h-screen flex flex-col bg-slate-50 text-slate-900;
+  }
+
+  .studio-panel {
+    @apply relative rounded-console border border-slate-200 bg-white shadow-panel;
+  }
+
+  .studio-card {
+    @apply relative rounded-studio border border-slate-200 bg-white shadow-sm transition-colors duration-200;
+  }
+
+  .studio-card:hover {
+    @apply border-slate-300 bg-slate-50/70;
+  }
+
+  .studio-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[.08em] text-slate-600;
+  }
+
+  .studio-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[.12em] text-slate-500;
+  }
+
+  .studio-title {
+    @apply font-semibold tracking-[-.025em] text-slate-950;
+  }
+
+  .studio-button-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+
+  .studio-button-ghost {
+    @apply inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors duration-200 hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+
+  .transcript-cue {
+    @apply rounded-lg border border-transparent px-3 py-3 text-left transition-colors duration-150 cursor-pointer hover:border-slate-200 hover:bg-slate-50;
+  }
+
+  .transcript-cue.active {
+    @apply border-blue-200 bg-blue-50 text-slate-950;
+  }
+
+  .transcript-cue.played {
+    @apply text-slate-400;
+  }
+
+  .speaker-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[.08em] text-slate-500;
+  }
+
+  .waveform-strip {
+    background-image: linear-gradient(135deg, #f8fafc 25%, #eef2ff 25%, #eef2ff 50%, #f8fafc 50%, #f8fafc 75%, #eef2ff 75%, #eef2ff 100%);
+    background-size: 16px 16px;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply border-slate-200 bg-white shadow-sm;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
