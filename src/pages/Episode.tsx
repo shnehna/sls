@@ -6,13 +6,13 @@ import AudioPlayer from '../components/AudioPlayer'
 import ShadowControls from '../components/ShadowControls'
 import Transcript from '../components/Transcript'
 import { usePlayer } from '../context/PlayerContext'
-import { formatDate, formatDuration, truncate } from '../utils/format'
+import { formatDate, formatDuration, formatTime, truncate } from '../utils/format'
 
 function EpisodeArtwork({ src, title }: { src?: string; title: string }) {
   const [failed, setFailed] = useState(false)
 
   if (!src || failed) {
-    return <div className="grid h-full w-full place-items-center bg-slate-100 text-4xl text-slate-400">♪</div>
+    return <div className="grid h-full w-full place-items-center bg-ink-800 text-5xl text-ember-300">♪</div>
   }
 
   return (
@@ -120,81 +120,93 @@ export default function Episode() {
     }
   }, [activeCue, play, seek])
 
-  if (!episodeId) return <div className="text-sm text-slate-600">Invalid episode id.</div>
+  if (!episodeId) return <div className="text-sm text-slate-400">Invalid episode id.</div>
 
   if (loading) {
     return (
-      <div className="space-y-4 pb-24">
-        <div className="h-48 rounded-xl border border-slate-200 bg-white animate-pulse" />
-        <div className="h-32 rounded-xl border border-slate-200 bg-white animate-pulse" />
-        <div className="h-80 rounded-xl border border-slate-200 bg-white animate-pulse" />
+      <div className="grid gap-5 pb-24 lg:grid-cols-[24rem_1fr]">
+        <div className="h-[42rem] animate-pulse rounded-deck border border-white/10 bg-white/[.06]" />
+        <div className="h-[42rem] animate-pulse rounded-deck border border-paper-700/10 bg-paper-50/80" />
       </div>
     )
   }
 
   if (error || !episode) {
-    return <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error || 'Episode not found'}</div>
+    return <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error || 'Episode not found'}</div>
   }
 
   const hasTranscript = !!(episode.transcripts?.length || episode.transcriptUrl)
 
   return (
-    <div className="space-y-5 pb-24">
-      <Link to={`/podcast/${episode.feedId || ''}`} className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-950">
-        ← Back to podcast
-      </Link>
+    <div className="pb-10">
+      <div className="grid gap-5 lg:grid-cols-[25rem_minmax(0,1fr)] lg:items-start">
+        <aside className="studio-practice-deck space-y-5">
+          <Link to={`/podcast/${episode.feedId || ''}`} className="inline-flex items-center font-mono text-[11px] font-semibold uppercase tracking-[.16em] text-slate-400 transition hover:text-ember-200">
+            ← Back to podcast
+          </Link>
 
-      <section className="studio-panel p-5 sm:p-6">
-        <div className="flex flex-col gap-5 sm:flex-row">
-          <div className="h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:h-36 sm:w-36">
-            <EpisodeArtwork src={episode.image || episode.feedImage} title={episode.title} />
+          <div className="overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/[.04]">
+            <div className="aspect-square max-h-72 w-full overflow-hidden lg:max-h-none">
+              <EpisodeArtwork src={episode.image || episode.feedImage} title={episode.title} />
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="studio-eyebrow">Episode</p>
-            <h1 className="studio-title mt-2 text-2xl sm:text-4xl">{episode.title}</h1>
+
+          <section>
+            <p className="studio-eyebrow">Listening deck</p>
+            <h1 className="mt-2 font-display text-3xl font-bold leading-[.98] tracking-[-.05em] text-slate-50 sm:text-4xl lg:text-3xl xl:text-4xl">
+              {episode.title}
+            </h1>
             <div className="mt-4 flex flex-wrap gap-2">
               {episode.feedTitle && <span className="studio-chip">{episode.feedTitle}</span>}
               {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
               {episode.datePublished && <span className="studio-chip">{formatDate(episode.datePublished)}</span>}
-              <span className={`studio-chip ${hasTranscript ? '!border-emerald-200 !bg-emerald-50 !text-emerald-700' : ''}`}>
+              <span className={`studio-chip ${hasTranscript ? '!border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200' : '!border-white/10 !text-slate-500'}`}>
                 {hasTranscript ? 'Transcript ready' : 'No transcript'}
               </span>
             </div>
-            <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-600">{truncate(episode.description || '', 420)}</p>
-          </div>
-        </div>
-      </section>
+            <p className="mt-4 text-sm leading-7 text-slate-400">{truncate(episode.description || '', 260)}</p>
+          </section>
 
-      <AudioPlayer compact />
+          <AudioPlayer compact />
 
-      <ShadowControls
-        playbackRate={state.playbackRate}
-        activeStart={activeCue?.startTime}
-        activeEnd={activeCue?.endTime}
-        onRateChange={setRate}
-        onPrevCue={prevCue}
-        onNextCue={nextCue}
-        onRepeatCue={repeatActiveCue}
-        onLoopChange={setLoopCurrentCue}
-      />
+          <ShadowControls
+            playbackRate={state.playbackRate}
+            activeStart={activeCue?.startTime}
+            activeEnd={activeCue?.endTime}
+            onRateChange={setRate}
+            onPrevCue={prevCue}
+            onNextCue={nextCue}
+            onRepeatCue={repeatActiveCue}
+            onLoopChange={setLoopCurrentCue}
+          />
 
-      <Transcript
-        cues={cues}
-        currentTime={state.currentTime}
-        activeCueIndex={state.activeCueIndex}
-        onCueClick={seekToCue}
-        loading={loadingTranscript}
-      />
+          {activeCue && (
+            <div className="rounded-2xl border border-aurora-300/15 bg-aurora-300/10 p-4">
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-200">Current cue</p>
+              <p className="mt-2 font-mono text-sm text-slate-100">{formatTime(activeCue.startTime)} — {formatTime(activeCue.endTime)}</p>
+              <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{activeCue.text}</p>
+            </div>
+          )}
 
-      <section className="studio-panel p-4 text-sm text-slate-600">
-        <h3 className="font-semibold text-slate-950">Keyboard shortcuts</h3>
-        <div className="mt-3 grid gap-2 sm:grid-cols-4">
-          <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">← previous cue</kbd>
-          <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">→ next cue</kbd>
-          <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">R repeat cue</kbd>
-          <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">Space play/pause</kbd>
-        </div>
-      </section>
+          <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
+            <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Keyboard</h3>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <kbd className="studio-kbd">← previous</kbd>
+              <kbd className="studio-kbd">→ next</kbd>
+              <kbd className="studio-kbd">R repeat</kbd>
+              <kbd className="studio-kbd">Space play</kbd>
+            </div>
+          </section>
+        </aside>
+
+        <Transcript
+          cues={cues}
+          currentTime={state.currentTime}
+          activeCueIndex={state.activeCueIndex}
+          onCueClick={seekToCue}
+          loading={loadingTranscript}
+        />
+      </div>
     </div>
   )
 }

@@ -46,8 +46,9 @@ export function formatDate(unixTimestamp: number): string {
  */
 export function truncate(text: string, maxLength = 150): string {
   if (!text) return ''
-  if (text.length <= maxLength) return text
-  return text.slice(0, maxLength).trimEnd() + '...'
+  const cleaned = cleanHtml(text)
+  if (cleaned.length <= maxLength) return cleaned
+  return cleaned.slice(0, maxLength).trimEnd() + '...'
 }
 
 /**
@@ -66,12 +67,16 @@ export function formatDuration(seconds: number | undefined): string {
  */
 export function cleanHtml(text: string): string {
   return text
+    .replace(/<br\s*\/?\s*>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 /**

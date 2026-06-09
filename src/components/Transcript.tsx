@@ -24,14 +24,14 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
 
   if (loading) {
     return (
-      <section className="studio-panel p-5">
-        <div className="flex items-center gap-3 text-sm text-slate-600">
-          <div className="h-4 w-4 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+      <section className="studio-transcript-surface p-5">
+        <div className="flex items-center gap-3 text-sm text-paper-700">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-ember-400 border-t-transparent" />
           Loading transcript…
         </div>
         <div className="mt-5 space-y-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="h-14 rounded-lg bg-slate-100 animate-pulse" />
+          {Array.from({ length: 7 }).map((_, index) => (
+            <div key={index} className="h-14 animate-pulse rounded-xl bg-paper-100/70" />
           ))}
         </div>
       </section>
@@ -40,10 +40,10 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
 
   if (cues.length === 0) {
     return (
-      <section className="studio-panel p-6 text-center">
-        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-2xl text-slate-400">♪</div>
-        <h3 className="text-lg font-semibold text-slate-950">No synced transcript found</h3>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
+      <section className="studio-transcript-surface p-8 text-center">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-paper-300/25 bg-white/40 text-2xl text-paper-300">♪</div>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">No synced transcript found</h3>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
           This episode can still be played, but shadow-reading cues need a Podcasting 2.0 transcript in SRT, VTT, or JSON.
         </p>
       </section>
@@ -51,20 +51,21 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
   }
 
   return (
-    <section className="studio-panel overflow-hidden">
-      <header className="border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
+    <section className="studio-transcript-surface flex min-h-[70vh] flex-col lg:h-[calc(100vh-8rem)]">
+      <header className="sticky top-0 z-10 border-b border-paper-700/10 bg-paper-50/82 px-5 py-4 backdrop-blur-xl sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="studio-eyebrow">Transcript</p>
-            <h2 className="studio-title mt-1 text-xl">Follow along</h2>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[.18em] text-paper-300">Transcript</p>
+            <h2 className="mt-1 font-display text-3xl font-bold tracking-[-.04em] text-paper-900">Follow along</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {speakers.slice(0, 4).map((speaker) => <SpeakerLabel key={speaker} name={speaker} />)}
+            <span className="speaker-badge">{cues.length} cues</span>
           </div>
         </div>
       </header>
 
-      <div className="max-h-[64vh] space-y-1 overflow-y-auto p-3 sm:p-4">
+      <div className="flex-1 space-y-1 overflow-y-auto p-3 sm:p-5">
         {cues.map((cue, index) => {
           const active = index === activeCueIndex
           const played = currentTime > cue.endTime
@@ -75,11 +76,13 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
               onClick={() => onCueClick(index)}
               className={`transcript-cue w-full ${active ? 'active' : ''} ${played ? 'played' : ''}`}
             >
-              <div className="grid grid-cols-[4rem_1fr] gap-3 sm:gap-4">
-                <span className="pt-1 text-xs tabular-nums text-slate-400">{formatTime(cue.startTime)}</span>
+              <div className="grid grid-cols-[3.25rem_1fr] gap-3 sm:grid-cols-[4.5rem_1fr] sm:gap-5">
+                <span className={`pt-1 font-mono text-[11px] tabular-nums ${active ? 'text-ember-600' : 'text-paper-700/42'}`}>
+                  {formatTime(cue.startTime)}
+                </span>
                 <div className="min-w-0">
                   {cue.speaker && <SpeakerLabel name={cue.speaker} />}
-                  <p className={`mt-2 text-base leading-7 ${active ? 'font-medium text-slate-950' : 'text-slate-700'}`}>
+                  <p className={`mt-2 text-base leading-8 sm:text-lg ${active ? 'font-semibold text-paper-900' : 'text-paper-900/74'}`}>
                     {cue.text}
                   </p>
                 </div>
