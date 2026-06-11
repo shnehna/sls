@@ -18,7 +18,7 @@ export default function EpisodeCard({ episode }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {episode.episode && <span className="studio-chip">#{episode.episode}</span>}
-            {hasTranscript && <span className="studio-chip !border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200">Transcript</span>}
+            {hasTranscript && <span className="studio-chip !border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200">Transcript available</span>}
             {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
           </div>
 

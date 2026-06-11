@@ -3,6 +3,8 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { normalizeCues, parseTranscript } from './shared/transcript'
+import type { EpisodeTranscriptResponse, TranscriptCue, TranscriptJob } from './shared/types'
 
 function readRawEnvFile(filePath: string): Record<string, string> {
   if (!existsSync(filePath)) return {}
@@ -83,6 +85,35 @@ function authDebugProxy(apiKey: string, apiSecret: string): Plugin {
   }
 }
 
+interface DevTranscript {
+  episodeId: number
+  cues: TranscriptCue[]
+  sourceUrl?: string
+  audioUrl: string
+  createdAt: string
+}
+
+interface DevJob extends TranscriptJob {}
+
+const devTranscripts = new Map<number, DevTranscript>()
+const devJobs = new Map<string, DevJob>()
+
+function sendJson(res: { setHeader: (name: string, value: string) => void; statusCode: number; end: (body?: string) => void }, data: unknown, status = 200) {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  res.end(JSON.stringify(data))
+}
+
+function readBody(req: NodeJS.ReadableStream): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = ''
+    req.setEncoding('utf8')
+    req.on('data', (chunk) => { body += chunk })
+    req.on('end', () => resolve(body))
+    req.on('error', reject)
+  })
+}
+
 function transcriptProxy(): Plugin {
   return {
     name: 'shadowcast-transcript-proxy',
@@ -119,6 +150,128 @@ function transcriptProxy(): Plugin {
   }
 }
 
+function transcriptIntakeDevApi(): Plugin {
+  return {
+    name: 'shadowcast-transcript-intake-dev-api',
+    configureServer(server) {
+      server.middlewares.use('/api/episodes', async (req, res, next) => {
+        try {
+          const url = new URL(req.url || '', 'http://localhost')
+          const parts = url.pathname.split('/').filter(Boolean)
+          const episodeId = Number(parts[0])
+          if (!Number.isInteger(episodeId)) return next()
+
+          if (req.method === 'GET' && parts[1] === 'transcript' && parts.length === 2) {
+            const stored = devTranscripts.get(episodeId)
+            if (stored) {
+              const response: EpisodeTranscriptResponse = {
+                episodeId,
+                status: 'ready',
+                transcript: {
+                  id: `dev-tr-${episodeId}`,
+                  episodeId,
+                  audioUrl: stored.audioUrl,
+                  sourceKind: 'mock',
+                  sourceUrl: stored.sourceUrl,
+                  provider: 'vite-dev',
+                  format: 'normalized',
+                  status: 'ready',
+                  cueCount: stored.cues.length,
+                  version: 1,
+                  createdAt: stored.createdAt,
+                  updatedAt: stored.createdAt,
+                },
+                cues: stored.cues,
+              }
+              sendJson(res, response)
+              return
+            }
+            sendJson(res, { episodeId, status: 'missing', transcript: null, cues: [] } satisfies EpisodeTranscriptResponse)
+            return
+          }
+
+          if (req.method === 'POST' && parts[1] === 'transcript' && parts[2] === 'import') {
+            const body = JSON.parse(await readBody(req)) as { url: string; type: string; audioUrl: string }
+            const upstream = await fetch(body.url, { headers: { 'User-Agent': 'ShadowCast/1.0' } })
+            if (!upstream.ok) {
+              sendJson(res, { error: `Transcript fetch failed: ${upstream.statusText}` }, upstream.status)
+              return
+            }
+            const cues = parseTranscript(await upstream.text(), body.type)
+            if (cues.length === 0) {
+              sendJson(res, { error: 'Transcript did not contain parseable cues' }, 422)
+              return
+            }
+            devTranscripts.set(episodeId, { episodeId, cues, sourceUrl: body.url, audioUrl: body.audioUrl, createdAt: new Date().toISOString() })
+            sendJson(res, { ok: true, transcriptId: `dev-tr-${episodeId}`, cueCount: cues.length })
+            return
+          }
+
+          if (req.method === 'POST' && parts[1] === 'transcription-jobs') {
+            const body = JSON.parse(await readBody(req)) as { audioUrl: string; episodeGuid?: string; provider?: string }
+            const timestamp = new Date().toISOString()
+            const id = `dev-job-${episodeId}`
+            const job: DevJob = {
+              id,
+              episodeId,
+              episodeGuid: body.episodeGuid,
+              audioUrl: body.audioUrl,
+              provider: body.provider || 'manual',
+              status: 'awaiting_upload',
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            }
+            devJobs.set(id, job)
+            sendJson(res, { job }, 201)
+            return
+          }
+
+          next()
+        } catch (error) {
+          next(error)
+        }
+      })
+
+      server.middlewares.use('/api/transcription-jobs', async (req, res, next) => {
+        try {
+          const url = new URL(req.url || '', 'http://localhost')
+          const parts = url.pathname.split('/').filter(Boolean)
+          const jobId = parts[0]
+          if (!jobId) return next()
+          const job = devJobs.get(jobId)
+          if (!job) {
+            sendJson(res, { error: 'Job not found' }, 404)
+            return
+          }
+
+          if (req.method === 'GET' && parts.length === 1) {
+            sendJson(res, { job })
+            return
+          }
+
+          if (req.method === 'POST' && parts[1] === 'complete') {
+            const body = JSON.parse(await readBody(req)) as { cues?: Array<Partial<TranscriptCue>>; raw?: string; type?: string }
+            const cues = body.cues ? normalizeCues(body.cues) : body.raw && body.type ? parseTranscript(body.raw, body.type) : []
+            if (cues.length === 0) {
+              sendJson(res, { error: 'Completion payload did not contain parseable cues' }, 422)
+              return
+            }
+            devTranscripts.set(job.episodeId, { episodeId: job.episodeId, cues, audioUrl: job.audioUrl, createdAt: new Date().toISOString() })
+            const updated: DevJob = { ...job, status: 'completed', resultTranscriptId: `dev-tr-${job.episodeId}`, updatedAt: new Date().toISOString(), completedAt: new Date().toISOString() }
+            devJobs.set(job.id, updated)
+            sendJson(res, { ok: true, job: updated, cueCount: cues.length })
+            return
+          }
+
+          next()
+        } catch (error) {
+          next(error)
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadRawEnv(mode)
   const apiKey = env.PODCAST_INDEX_KEY || ''
@@ -129,7 +282,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), authDebugProxy(apiKey, apiSecret), transcriptProxy()],
+    plugins: [react(), authDebugProxy(apiKey, apiSecret), transcriptProxy(), transcriptIntakeDevApi()],
     server: {
       proxy: {
         '/api/podcastindex': {

@@ -1,3 +1,12 @@
+import type {
+  EpisodeTranscriptResponse,
+  Person as SharedPerson,
+  StoredTranscript,
+  TranscriptCue as SharedTranscriptCue,
+  TranscriptFileType,
+  TranscriptJob,
+} from '../../shared/types'
+
 // ==================== Podcast Types ====================
 
 export interface PodcastFeed {
@@ -104,17 +113,10 @@ export interface Episode {
 
 export interface Transcript {
   url: string
-  type: 'application/json' | 'application/srt' | 'text/html' | 'text/plain' | 'text/srt' | 'text/vtt'
+  type: TranscriptFileType
 }
 
-export interface Person {
-  id: number
-  name: string
-  role?: string
-  group?: string
-  href?: string
-  img?: string
-}
+export type Person = SharedPerson
 
 export interface Soundbite {
   startTime: number
@@ -132,12 +134,13 @@ export interface SocialInteract {
 
 // ==================== Transcript Parser Types ====================
 
-export interface TranscriptCue {
-  id: number
-  startTime: number   // seconds
-  endTime: number      // seconds
-  text: string
-  speaker?: string     // extracted from text or persons array
+export type TranscriptCue = SharedTranscriptCue
+
+export type {
+  EpisodeTranscriptResponse,
+  StoredTranscript,
+  TranscriptFileType,
+  TranscriptJob,
 }
 
 // ==================== API Response Types ====================

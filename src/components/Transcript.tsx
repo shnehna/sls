@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import type { TranscriptCue } from '../api/types'
+import type { TranscriptCue, TranscriptJob } from '../api/types'
 import { formatTime } from '../utils/format'
 import SpeakerLabel from './SpeakerLabel'
 
@@ -9,9 +9,31 @@ interface Props {
   activeCueIndex: number
   onCueClick: (index: number) => void
   loading?: boolean
+  status?: 'idle' | 'loading' | 'missing' | 'processing' | 'ready' | 'error'
+  source?: 'stored' | 'remote-fallback' | 'none'
+  error?: string | null
+  job?: TranscriptJob | null
+  hasRemoteTranscript?: boolean
+  onImportTranscript?: () => void
+  onCreateJob?: () => void
+  onRefresh?: () => void
 }
 
-export default function Transcript({ cues, currentTime, activeCueIndex, onCueClick, loading }: Props) {
+export default function Transcript({
+  cues,
+  currentTime,
+  activeCueIndex,
+  onCueClick,
+  loading,
+  status = 'idle',
+  source = 'none',
+  error,
+  job,
+  hasRemoteTranscript,
+  onImportTranscript,
+  onCreateJob,
+  onRefresh,
+}: Props) {
   const activeRef = useRef<HTMLButtonElement | null>(null)
   const speakers = useMemo(
     () => Array.from(new Set(cues.map((cue) => cue.speaker).filter((speaker): speaker is string => Boolean(speaker)))),
@@ -22,7 +44,7 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
     activeRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   }, [activeCueIndex])
 
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <section className="studio-transcript-surface p-5">
         <div className="flex items-center gap-3 text-sm text-paper-700">
@@ -38,14 +60,63 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
     )
   }
 
+  if (status === 'processing') {
+    return (
+      <section className="studio-transcript-surface p-8 text-center">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-aurora-300/30 bg-aurora-300/10 text-2xl text-aurora-300">↻</div>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">Transcript job in progress</h3>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
+          {job ? `Provider ${job.provider} is currently ${job.status.replace(/_/g, ' ')}.` : 'A transcript job is waiting to finish.'}
+        </p>
+        {job && <p className="mt-3 font-mono text-[11px] uppercase tracking-[.12em] text-paper-700/50">Job {job.id}</p>}
+        {onRefresh && (
+          <button onClick={onRefresh} className="mt-5 rounded-full border border-paper-700/15 bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
+            Refresh status
+          </button>
+        )}
+      </section>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <section className="studio-transcript-surface p-8 text-center">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-danger/30 bg-danger/10 text-2xl text-danger">!</div>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">Transcript unavailable</h3>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
+          {error || 'The transcript could not be loaded or generated.'}
+        </p>
+        <div className="mt-5 flex justify-center gap-3">
+          {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">Retry</button>}
+          {hasRemoteTranscript && onImportTranscript && <button onClick={onImportTranscript} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50">Import remote transcript</button>}
+        </div>
+      </section>
+    )
+  }
+
   if (cues.length === 0) {
     return (
       <section className="studio-transcript-surface p-8 text-center">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-paper-300/25 bg-white/40 text-2xl text-paper-300">♪</div>
         <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">No synced transcript found</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
-          This episode can still be played, but shadow-reading cues need a Podcasting 2.0 transcript in SRT, VTT, or JSON.
+          {hasRemoteTranscript
+            ? 'This episode has remote transcript metadata. Import it to parse and store reusable reading cues.'
+            : 'This episode can still be played. Create a transcript job so a manual or external ASR result can be stored later.'}
         </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          {hasRemoteTranscript && onImportTranscript && (
+            <button onClick={onImportTranscript} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
+              Import transcript
+            </button>
+          )}
+          {!hasRemoteTranscript && onCreateJob && (
+            <button onClick={onCreateJob} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
+              Create transcript job
+            </button>
+          )}
+          {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">Refresh</button>}
+        </div>
       </section>
     )
   }
@@ -59,6 +130,8 @@ export default function Transcript({ cues, currentTime, activeCueIndex, onCueCli
             <h2 className="mt-1 font-display text-3xl font-bold tracking-[-.04em] text-paper-900">Follow along</h2>
           </div>
           <div className="flex flex-wrap gap-2">
+            {source === 'stored' && <span className="speaker-badge">stored</span>}
+            {source === 'remote-fallback' && <span className="speaker-badge">remote preview</span>}
             {speakers.slice(0, 4).map((speaker) => <SpeakerLabel key={speaker} name={speaker} />)}
             <span className="speaker-badge">{cues.length} cues</span>
           </div>

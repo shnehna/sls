@@ -5,6 +5,10 @@ import type {
   EpisodeResponse,
   RecentDataResponse,
   RecentFeedsResponse,
+  EpisodeTranscriptResponse,
+  TranscriptCue,
+  TranscriptFileType,
+  TranscriptJob,
 } from './types'
 
 const BASE_URL = '/api/podcastindex'
@@ -20,6 +24,7 @@ const CACHE_TTL = {
   episodes: 12 * HOUR,
   episode: 24 * HOUR,
   transcript: 24 * HOUR,
+  storedTranscript: 5 * MINUTE,
 }
 
 interface CacheEntry<T> {
@@ -284,5 +289,113 @@ export async function fetchTranscriptFile(url: string, options?: CacheOptions): 
       return response.text()
     },
     options
+  )
+}
+
+
+// ==================== Stored Transcripts ====================
+
+function storedTranscriptCacheKey(episodeId: number): string {
+  return `stored-transcript:${episodeId}`
+}
+
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init)
+  if (!response.ok) {
+    let message = `${response.status} ${response.statusText}`
+    try {
+      const data = await response.json() as { error?: string }
+      if (data.error) message = data.error
+    } catch {
+      // Keep HTTP status message when the response is not JSON.
+    }
+    throw new Error(message)
+  }
+  return response.json() as Promise<T>
+}
+
+export function getCachedEpisodeTranscript(episodeId: number): EpisodeTranscriptResponse | null {
+  return getCachedValue<EpisodeTranscriptResponse>(storedTranscriptCacheKey(episodeId), CACHE_TTL.storedTranscript)
+}
+
+export async function getEpisodeTranscript(
+  episodeId: number,
+  options?: CacheOptions
+): Promise<EpisodeTranscriptResponse> {
+  return fetchWithCache(
+    storedTranscriptCacheKey(episodeId),
+    CACHE_TTL.storedTranscript,
+    async () => {
+      const data = await fetchJson<EpisodeTranscriptResponse>(`/api/episodes/${episodeId}/transcript`)
+      if (data.status !== 'ready') {
+        writeCachedValue(storedTranscriptCacheKey(episodeId), data)
+      }
+      return data
+    },
+    options
+  )
+}
+
+export interface ImportEpisodeTranscriptPayload {
+  url: string
+  type: TranscriptFileType
+  audioUrl: string
+  episodeGuid?: string
+  provider?: string
+  sourceKind?: 'podcast_index_remote' | 'imported_remote'
+  language?: string
+}
+
+export async function importEpisodeTranscript(
+  episodeId: number,
+  payload: ImportEpisodeTranscriptPayload
+): Promise<{ ok: true; transcriptId: string; cueCount: number }> {
+  const result = await fetchJson<{ ok: true; transcriptId: string; cueCount: number }>(
+    `/api/episodes/${episodeId}/transcript/import`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }
+  )
+  window.localStorage.removeItem(cacheKey(storedTranscriptCacheKey(episodeId)))
+  return result
+}
+
+export interface CreateTranscriptionJobPayload {
+  audioUrl: string
+  episodeGuid?: string
+  provider?: string
+  language?: string
+}
+
+export async function createTranscriptionJob(
+  episodeId: number,
+  payload: CreateTranscriptionJobPayload
+): Promise<{ job: TranscriptJob }> {
+  const result = await fetchJson<{ job: TranscriptJob }>(`/api/episodes/${episodeId}/transcription-jobs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  window.localStorage.removeItem(cacheKey(storedTranscriptCacheKey(episodeId)))
+  return result
+}
+
+export async function getTranscriptionJob(jobId: string): Promise<{ job: TranscriptJob }> {
+  return fetchJson<{ job: TranscriptJob }>(`/api/transcription-jobs/${jobId}`)
+}
+
+export async function completeTranscriptionJob(
+  jobId: string,
+  payload: { cues?: Array<Partial<TranscriptCue>>; raw?: string; type?: TranscriptFileType; format?: TranscriptFileType | 'normalized'; language?: string }
+): Promise<{ ok: true; job: TranscriptJob; cueCount: number }> {
+  return fetchJson<{ ok: true; job: TranscriptJob; cueCount: number }>(
+    `/api/transcription-jobs/${jobId}/complete`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }
   )
 }
