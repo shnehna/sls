@@ -98,6 +98,14 @@ interface DevJob extends TranscriptJob {}
 const devTranscripts = new Map<number, DevTranscript>()
 const devJobs = new Map<string, DevJob>()
 
+function mockTranscriptCues(title = 'Generated transcript'): TranscriptCue[] {
+  return [
+    { id: 0, startTime: 0, endTime: 4, text: `${title} is being prepared from the episode audio.`, speaker: 'Speaker 1' },
+    { id: 1, startTime: 4, endTime: 9, text: 'This local mock proves the backend STT workflow can store reusable cues.', speaker: 'Speaker 1' },
+    { id: 2, startTime: 9, endTime: 14, text: 'Configure a real STT provider to replace these generated development cues.', speaker: 'Speaker 1' },
+  ]
+}
+
 function sendJson(res: { setHeader: (name: string, value: string) => void; statusCode: number; end: (body?: string) => void }, data: unknown, status = 200) {
   res.statusCode = status
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -209,19 +217,37 @@ function transcriptIntakeDevApi(): Plugin {
 
           if (req.method === 'POST' && parts[1] === 'transcription-jobs') {
             const body = JSON.parse(await readBody(req)) as { audioUrl: string; episodeGuid?: string; provider?: string }
+            if (!body.audioUrl) {
+              sendJson(res, { error: 'Missing audioUrl' }, 400)
+              return
+            }
             const timestamp = new Date().toISOString()
             const id = `dev-job-${episodeId}`
+            const provider = !body.provider || body.provider === 'auto' ? 'mock' : body.provider
             const job: DevJob = {
               id,
               episodeId,
               episodeGuid: body.episodeGuid,
               audioUrl: body.audioUrl,
-              provider: body.provider || 'manual',
-              status: 'awaiting_upload',
+              provider,
+              status: provider === 'manual' ? 'awaiting_upload' : 'processing',
+              providerJobId: provider === 'manual' ? undefined : `mock-${id}`,
+              providerStatus: provider === 'manual' ? 'awaiting_upload' : 'mock_submitted',
               createdAt: timestamp,
               updatedAt: timestamp,
             }
             devJobs.set(id, job)
+
+            if (provider !== 'manual') {
+              setTimeout(() => {
+                const current = devJobs.get(id)
+                if (!current || current.status === 'completed') return
+                const completedAt = new Date().toISOString()
+                devTranscripts.set(episodeId, { episodeId, cues: mockTranscriptCues(), audioUrl: body.audioUrl, createdAt: completedAt })
+                devJobs.set(id, { ...current, status: 'completed', providerStatus: 'mock_completed', resultTranscriptId: `dev-tr-${episodeId}`, updatedAt: completedAt, completedAt })
+              }, 1500)
+            }
+
             sendJson(res, { job }, 201)
             return
           }

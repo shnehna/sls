@@ -123,6 +123,24 @@ export async function getEpisodeTranscript(db: D1Database, episodeId: number): P
     }
   }
 
+  const failedJob = await db.prepare(`
+    SELECT * FROM transcription_jobs
+    WHERE episode_id = ? AND status = 'failed'
+    ORDER BY updated_at DESC
+    LIMIT 1
+  `).bind(episodeId).first<JobRow>()
+
+  if (failedJob) {
+    return {
+      episodeId,
+      status: 'failed',
+      transcript: null,
+      cues: [],
+      job: mapJobRow(failedJob),
+      errorMessage: optionalString(failedJob.error_message),
+    }
+  }
+
   return {
     episodeId,
     status: 'missing',
@@ -267,6 +285,57 @@ export async function createTranscriptionJob(db: D1Database, input: {
 export async function getJob(db: D1Database, jobId: string): Promise<TranscriptJob | null> {
   const row = await db.prepare('SELECT * FROM transcription_jobs WHERE id = ?').bind(jobId).first<JobRow>()
   return row ? mapJobRow(row) : null
+}
+
+export async function getJobByProviderJobId(db: D1Database, provider: string, providerJobId: string): Promise<TranscriptJob | null> {
+  const row = await db.prepare(`
+    SELECT * FROM transcription_jobs
+    WHERE provider = ? AND provider_job_id = ?
+    ORDER BY created_at DESC
+    LIMIT 1
+  `).bind(provider, providerJobId).first<JobRow>()
+  return row ? mapJobRow(row) : null
+}
+
+export async function updateTranscriptionJobProviderState(db: D1Database, jobId: string, input: {
+  status: TranscriptJob['status']
+  providerJobId?: string
+  providerStatus?: string
+  requestPayload?: unknown
+  errorMessage?: string | null
+}): Promise<TranscriptJob> {
+  const timestamp = nowIso()
+  await db.prepare(`
+    UPDATE transcription_jobs
+    SET status = ?, provider_job_id = COALESCE(?, provider_job_id), provider_status = ?,
+        request_payload = COALESCE(?, request_payload), error_message = ?, updated_at = ?
+    WHERE id = ?
+  `).bind(
+    input.status,
+    input.providerJobId || null,
+    input.providerStatus || null,
+    input.requestPayload ? JSON.stringify(input.requestPayload) : null,
+    input.errorMessage || null,
+    timestamp,
+    jobId
+  ).run()
+
+  const job = await getJob(db, jobId)
+  if (!job) throw new Error('Failed to update transcription job')
+  return job
+}
+
+export async function failTranscriptionJob(db: D1Database, jobId: string, message: string, providerStatus?: string): Promise<TranscriptJob> {
+  const timestamp = nowIso()
+  await db.prepare(`
+    UPDATE transcription_jobs
+    SET status = 'failed', provider_status = ?, error_message = ?, updated_at = ?, completed_at = ?
+    WHERE id = ?
+  `).bind(providerStatus || 'failed', message, timestamp, timestamp, jobId).run()
+
+  const job = await getJob(db, jobId)
+  if (!job) throw new Error('Failed to fail transcription job')
+  return job
 }
 
 export async function completeTranscriptionJob(db: D1Database, jobId: string, input: SaveTranscriptInput): Promise<{ job: TranscriptJob; transcript: StoredTranscript }> {

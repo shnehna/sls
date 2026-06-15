@@ -1,4 +1,9 @@
-import { createTranscriptionJob } from '../../../../lib/transcripts'
+import { getConfiguredProvider, submitTranscription } from '../../../../lib/stt'
+import {
+  createTranscriptionJob,
+  failTranscriptionJob,
+  updateTranscriptionJobProviderState,
+} from '../../../../lib/transcripts'
 import { getNumericParam, jsonError, jsonResponse, readJsonBody, requireDb } from '../../../../lib/http'
 import type { FunctionContext } from '../../../../lib/types'
 
@@ -28,16 +33,42 @@ export const onRequest = async ({ request, env, params }: FunctionContext<Params
   if (body instanceof Response) return body
   if (!body.audioUrl) return jsonError('Missing audioUrl', 400)
 
+  const provider = getConfiguredProvider(env, body.provider)
   const job = await createTranscriptionJob(env.DB!, {
     episodeId,
     episodeGuid: body.episodeGuid,
     audioUrl: body.audioUrl,
-    provider: body.provider || 'manual',
+    provider,
     requestPayload: {
-      provider: body.provider || 'manual',
+      provider,
       language: body.language,
     },
   })
 
-  return jsonResponse({ job }, { status: 201 })
+  if (job.providerJobId || job.status === 'awaiting_webhook') {
+    return jsonResponse({ job }, { status: 200 })
+  }
+
+  try {
+    const submission = await submitTranscription(env, {
+      jobId: job.id,
+      audioUrl: body.audioUrl,
+      episodeGuid: body.episodeGuid,
+      language: body.language,
+      requestedProvider: provider,
+    })
+
+    const updatedJob = await updateTranscriptionJobProviderState(env.DB!, job.id, {
+      status: submission.status,
+      providerJobId: submission.providerJobId,
+      providerStatus: submission.providerStatus,
+      requestPayload: submission.requestPayload,
+    })
+
+    return jsonResponse({ job: updatedJob }, { status: 201 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to submit transcription job'
+    const failedJob = await failTranscriptionJob(env.DB!, job.id, message)
+    return jsonResponse({ job: failedJob, error: message }, { status: 502 })
+  }
 }

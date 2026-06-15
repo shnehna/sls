@@ -179,15 +179,15 @@ export default function Episode() {
 
 
           <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-            <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Transcript intake</h3>
+            <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Transcript automation</h3>
             <p className="mt-2 text-sm leading-6 text-slate-400">
               {transcriptStatus === 'ready'
                 ? 'Reusable reading cues are available for this episode.'
                 : transcriptStatus === 'processing'
-                  ? `Job ${transcriptJob?.status.replace(/_/g, ' ') || 'processing'} is waiting for completion.`
+                  ? `Backend STT is ${transcriptJob?.status.replace(/_/g, ' ') || 'processing'} and will refresh automatically.`
                   : hasRemoteTranscript
                     ? 'A remote transcript is available and can be parsed into the local store.'
-                    : 'No transcript metadata was found. Create a manual job to accept a future ASR or human transcript.'}
+                    : 'No transcript metadata was found. Generate a synced transcript from the episode audio.'}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {hasRemoteTranscript && transcriptSource !== 'stored' && (
@@ -197,7 +197,7 @@ export default function Episode() {
               )}
               {!hasRemoteTranscript && transcriptStatus !== 'processing' && (
                 <button onClick={() => createTranscriptJob()} className="rounded-full bg-aurora-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-aurora-200">
-                  Create transcript job
+                  Generate transcript
                 </button>
               )}
               <button onClick={refreshTranscript} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/20">

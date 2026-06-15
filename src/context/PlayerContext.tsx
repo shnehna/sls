@@ -137,13 +137,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const loadTranscriptForEpisode = useCallback(async (episode: Episode, options?: { forceRefresh?: boolean }) => {
+  const loadTranscriptForEpisode = useCallback(async (episode: Episode, options?: { forceRefresh?: boolean; silent?: boolean }) => {
     const remote = getRemoteTranscript(episode)
-    setLoadingTranscript(true)
-    setTranscriptStatus('loading')
-    setTranscriptSource('none')
-    setTranscriptError(null)
-    setTranscriptJob(null)
+    if (!options?.silent) {
+      setLoadingTranscript(true)
+      setTranscriptStatus('loading')
+      setTranscriptSource('none')
+      setTranscriptError(null)
+      setTranscriptJob(null)
+    }
 
     try {
       const stored = await getEpisodeTranscript(
@@ -244,6 +246,18 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadTranscriptForEpisode, state.episode])
 
+  useEffect(() => {
+    if (!state.episode || transcriptStatus !== 'processing') return
+
+    const interval = window.setInterval(() => {
+      loadTranscriptForEpisode(state.episode!, { forceRefresh: true, silent: true }).catch((err) => {
+        console.warn('Failed to refresh transcript status:', err)
+      })
+    }, 6000)
+
+    return () => window.clearInterval(interval)
+  }, [loadTranscriptForEpisode, state.episode, transcriptStatus])
+
   const importCurrentTranscript = useCallback(async () => {
     if (!state.episode) return
     const remote = getRemoteTranscript(state.episode)
@@ -272,7 +286,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadTranscriptForEpisode, state.episode])
 
-  const createTranscriptJob = useCallback(async (provider = 'manual') => {
+  const createTranscriptJob = useCallback(async (provider = 'auto') => {
     if (!state.episode) return
     setLoadingTranscript(true)
     setTranscriptError(null)

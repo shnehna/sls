@@ -64,9 +64,9 @@ export default function Transcript({
     return (
       <section className="studio-transcript-surface p-8 text-center">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-aurora-300/30 bg-aurora-300/10 text-2xl text-aurora-300">↻</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">Transcript job in progress</h3>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">Generating synced transcript</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
-          {job ? `Provider ${job.provider} is currently ${job.status.replace(/_/g, ' ')}.` : 'A transcript job is waiting to finish.'}
+          {job ? `Backend STT provider ${job.provider} is ${job.status.replace(/_/g, ' ')}. This view refreshes automatically.` : 'Backend STT is generating cues from the episode audio.'}
         </p>
         {job && <p className="mt-3 font-mono text-[11px] uppercase tracking-[.12em] text-paper-700/50">Job {job.id}</p>}
         {onRefresh && (
@@ -102,7 +102,7 @@ export default function Transcript({
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
           {hasRemoteTranscript
             ? 'This episode has remote transcript metadata. Import it to parse and store reusable reading cues.'
-            : 'This episode can still be played. Create a transcript job so a manual or external ASR result can be stored later.'}
+            : 'This episode can still be played. Generate a synced transcript from the episode audio.'}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           {hasRemoteTranscript && onImportTranscript && (
@@ -112,7 +112,7 @@ export default function Transcript({
           )}
           {!hasRemoteTranscript && onCreateJob && (
             <button onClick={onCreateJob} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
-              Create transcript job
+              Generate transcript
             </button>
           )}
           {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">Refresh</button>}

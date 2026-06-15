@@ -25,6 +25,11 @@ export interface D1Database {
 
 export interface Env {
   DB?: D1Database
+  STT_PROVIDER?: string
+  STT_CALLBACK_BASE_URL?: string
+  STT_WEBHOOK_SECRET?: string
+  DEEPGRAM_API_KEY?: string
+  DEEPGRAM_MODEL?: string
 }
 
 export interface FunctionContext<Params extends object = Record<string, string | string[] | undefined>> {
