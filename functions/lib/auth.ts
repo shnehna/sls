@@ -3,7 +3,7 @@ import type { D1Database, Env } from './types'
 export const SESSION_COOKIE = 'shadowcast_session'
 export const GITHUB_STATE_COOKIE = 'shadowcast_github_state'
 
-const PASSWORD_ITERATIONS = 180000
+const PASSWORD_ITERATIONS = 100000
 const SESSION_DAYS = 30
 const OAUTH_STATE_MAX_AGE_SECONDS = 10 * 60
 const RESERVED_USERNAMES = new Set([
