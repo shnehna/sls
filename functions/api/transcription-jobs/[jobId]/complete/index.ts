@@ -1,4 +1,5 @@
-import { completeTranscriptionJob, getJob } from '../../../../lib/transcripts'
+import { requireCurrentUser } from '../../../../lib/auth'
+import { completeTranscriptionJob, getJobForUser } from '../../../../lib/transcripts'
 import { getStringParam, jsonError, jsonResponse, readJsonBody, requireDb } from '../../../../lib/http'
 import type { FunctionContext } from '../../../../lib/types'
 import { normalizeCues, parseTranscript } from '../../../../../shared/transcript'
@@ -24,13 +25,16 @@ export const onRequest = async ({ request, env, params }: FunctionContext<Params
   const dbError = requireDb(env)
   if (dbError) return dbError
 
+  const current = await requireCurrentUser(request, env)
+  if (current instanceof Response) return current
+
   const jobId = getStringParam(params.jobId, 'job id')
   if (jobId instanceof Response) return jobId
 
   const body = await readJsonBody<CompleteJobBody>(request)
   if (body instanceof Response) return body
 
-  const job = await getJob(env.DB!, jobId)
+  const job = await getJobForUser(env.DB!, jobId, current.user.id)
   if (!job) return jsonError('Job not found', 404)
   if (job.status === 'completed') return jsonError('Job is already completed', 409)
 

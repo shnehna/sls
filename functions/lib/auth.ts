@@ -257,6 +257,12 @@ export async function getCurrentSession(request: Request, env: Env): Promise<Cur
   }
 }
 
+export async function requireCurrentUser(request: Request, env: Env): Promise<CurrentSession | Response> {
+  const current = await getCurrentSession(request, env)
+  if (!current) return Response.json({ error: 'Authentication required' }, { status: 401 })
+  return current
+}
+
 export async function listIdentities(db: D1Database, userId: string): Promise<AuthIdentity[]> {
   const rows = await db.prepare(`
     SELECT * FROM auth_identities

@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCachedRecentData, getRecentData } from '../api/client'
 import type { PodcastFeed, RecentDataResponse, RecentEpisodeItem } from '../api/types'
+import ContinueListening from '../components/ContinueListening'
 import PodcastCard from '../components/PodcastCard'
+import { useAuth } from '../context/AuthContext'
+import { useLibrary } from '../context/LibraryContext'
 import { formatDuration, timeAgo, truncate } from '../utils/format'
 
 function mapDiscoveryData(data: RecentDataResponse) {
@@ -49,6 +52,8 @@ function RecentEpisodeArtwork({ src, title }: { src?: string; title: string }) {
 }
 
 export default function Home() {
+  const { user } = useAuth()
+  const { library, loading: libraryLoading } = useLibrary()
   const [feeds, setFeeds] = useState<PodcastFeed[]>([])
   const [episodes, setEpisodes] = useState<RecentEpisodeItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,14 +99,16 @@ export default function Home() {
           <div className="max-w-3xl">
             <p className="studio-eyebrow">English listening practice</p>
             <h1 className="studio-title mt-4 text-5xl leading-[.93] sm:text-7xl">
-              Listen like a studio editor. Repeat like a performer.
+              {user ? `Welcome back, ${user.displayName}` : 'Listen like a studio editor. Repeat like a performer.'}
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-              A focused podcast shadow-reading desk with searchable English feeds, synced transcripts, speed control, and cue-level repeat.
+              {user
+                ? 'Continue your English shadowing practice with saved podcasts, progress, and cue-level bookmarks.'
+                : 'A focused podcast shadow-reading desk with searchable English feeds, synced transcripts, speed control, and cue-level repeat.'}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/search?q=english learning" className="studio-button-primary">Start practice</Link>
-              <Link to="/search?q=news" className="studio-button-ghost">Browse news podcasts</Link>
+              <Link to={user ? '/library' : '/search?q=news'} className="studio-button-ghost">{user ? 'Open my library' : 'Browse news podcasts'}</Link>
             </div>
           </div>
 
@@ -109,11 +116,11 @@ export default function Home() {
             <div className="absolute inset-0 waveform-strip opacity-40" />
             <div className="relative flex h-full flex-col justify-between">
               <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[.18em] text-slate-400">
-                <span>Practice console</span>
+                <span>{user ? 'Your studio' : 'Practice console'}</span>
                 <span className="text-ember-300">Live cues</span>
               </div>
               <div className="mt-14 space-y-3">
-                {['Hear the line', 'Repeat the rhythm', 'Track every word'].map((label, index) => (
+                {(user ? ['Continue practice', 'Saved podcasts', 'Recent bookmarks'] : ['Hear the line', 'Repeat the rhythm', 'Track every word']).map((label, index) => (
                   <div key={label} className="rounded-2xl border border-white/10 bg-white/[.07] p-4" style={{ transform: `translateX(${index * 18}px)` }}>
                     <span className="font-mono text-[11px] text-aurora-200">0{index + 1}</span>
                     <p className="mt-1 font-display text-2xl font-bold tracking-[-.04em] text-slate-50">{label}</p>
@@ -126,6 +133,19 @@ export default function Home() {
       </section>
 
       {error && <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error}</div>}
+
+      {user && (
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="studio-eyebrow">Continue listening</p>
+              <h2 className="studio-title mt-1 text-3xl">Resume your latest sessions</h2>
+            </div>
+            <Link to="/library/progress" className="text-sm font-semibold text-aurora-200 hover:text-ember-200">Open progress →</Link>
+          </div>
+          <ContinueListening items={library?.recentProgress || []} loading={libraryLoading} />
+        </section>
+      )}
 
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-4">
@@ -171,3 +191,4 @@ export default function Home() {
     </div>
   )
 }
+

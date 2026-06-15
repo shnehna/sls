@@ -72,6 +72,7 @@ export interface TranscriptJob {
   providerStatus?: string
   resultTranscriptId?: string
   errorMessage?: string
+  createdByUserId?: string
   createdAt: string
   updatedAt: string
   completedAt?: string

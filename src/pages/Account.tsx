@@ -112,6 +112,25 @@ export default function Account() {
           <button disabled={!passwordIdentity || submitting} className="studio-button-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">{submitting ? 'Updating…' : 'Update password'}</button>
         </form>
       </div>
+
+      <div className="studio-card p-6">
+        <p className="studio-eyebrow">Learning preferences</p>
+        <h2 className="mt-2 font-display text-3xl font-bold text-white">Shadowing defaults</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-400">First version preferences are shown here as account-level guidance; persistence can be added when a preferences table is introduced.</p>
+        <div className="mt-5 grid gap-3 md:grid-cols-4">
+          {[
+            ['English level', 'B1 daily conversation'],
+            ['Practice goal', 'Accent shadowing'],
+            ['Session length', '15 minutes'],
+            ['Playback speed', '1× default'],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
+              <p className="font-mono text-[10px] uppercase tracking-[.16em] text-slate-500">{label}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-100">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

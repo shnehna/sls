@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import EpisodeCard from '../components/EpisodeCard'
+import SavedPodcastButton from '../components/SavedPodcastButton'
 import { useEpisodes } from '../hooks/useEpisodes'
 import { usePodcast } from '../hooks/usePodcast'
 import { truncate } from '../utils/format'
@@ -53,12 +54,13 @@ export default function Podcast() {
               <h1 className="studio-title mt-2 text-4xl leading-none sm:text-6xl">{podcast.title}</h1>
               {podcast.author && <p className="mt-3 text-sm text-slate-400">by {podcast.author}</p>}
               <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300">{truncate(podcast.description || '', 420)}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
                 {podcast.language && <span className="studio-chip uppercase">{podcast.language}</span>}
                 {podcast.episodeCount !== undefined && <span className="studio-chip">{podcast.episodeCount} episodes</span>}
                 {podcast.categories && Object.values(podcast.categories).slice(0, 4).map((cat) => (
                   <span key={cat} className="studio-chip">{cat}</span>
                 ))}
+                <SavedPodcastButton podcast={podcast} />
               </div>
             </div>
           </div>

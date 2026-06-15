@@ -1,3 +1,4 @@
+import { requireCurrentUser } from '../../../../lib/auth'
 import { getNumericParam, jsonResponse, requireDb } from '../../../../lib/http'
 import { getEpisodeTranscript } from '../../../../lib/transcripts'
 import type { FunctionContext } from '../../../../lib/types'
@@ -13,6 +14,9 @@ export const onRequest = async ({ request, env, params }: FunctionContext<Params
 
   const dbError = requireDb(env)
   if (dbError) return dbError
+
+  const current = await requireCurrentUser(request, env)
+  if (current instanceof Response) return current
 
   const episodeId = getNumericParam(params.episodeId, 'episode id')
   if (episodeId instanceof Response) return episodeId

@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
+import { saveEpisodeProgress } from '../api/library'
+import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/format'
 
@@ -31,7 +33,9 @@ function PlayerArtwork({ src, title, compact }: { src?: string; title: string; c
 }
 
 export default function AudioPlayer({ compact = false }: Props) {
+  const { user } = useAuth()
   const { state, audioRef, togglePlay, seek, setRate, setVolume, dispatch } = usePlayer()
+  const lastProgressSaveRef = useRef(0)
   const episode = state.episode
 
   useEffect(() => {
@@ -48,9 +52,31 @@ export default function AudioPlayer({ compact = false }: Props) {
     const audio = audioRef.current
     if (!audio) return
 
+    const saveProgress = () => {
+      if (!user || !episode || audio.currentTime < 1) return
+      const now = Date.now()
+      if (now - lastProgressSaveRef.current < 10000) return
+      lastProgressSaveRef.current = now
+      void saveEpisodeProgress(episode.id, {
+        podcastId: episode.feedId,
+        positionSeconds: audio.currentTime,
+        durationSeconds: audio.duration || episode.duration,
+        episodeTitle: episode.title,
+        episodeImage: episode.image || episode.feedImage,
+        podcastTitle: episode.feedTitle,
+        podcastImage: episode.feedImage,
+      }).catch(() => undefined)
+    }
+
     const onLoadedMetadata = () => dispatch({ type: 'SET_DURATION', duration: audio.duration || episode?.duration || 0 })
-    const onTimeUpdate = () => dispatch({ type: 'SET_TIME', time: audio.currentTime })
-    const onEnded = () => dispatch({ type: 'PAUSE' })
+    const onTimeUpdate = () => {
+      dispatch({ type: 'SET_TIME', time: audio.currentTime })
+      saveProgress()
+    }
+    const onEnded = () => {
+      dispatch({ type: 'PAUSE' })
+      saveProgress()
+    }
 
     audio.addEventListener('loadedmetadata', onLoadedMetadata)
     audio.addEventListener('timeupdate', onTimeUpdate)
@@ -61,7 +87,7 @@ export default function AudioPlayer({ compact = false }: Props) {
       audio.removeEventListener('timeupdate', onTimeUpdate)
       audio.removeEventListener('ended', onEnded)
     }
-  }, [audioRef, dispatch, episode?.duration])
+  }, [audioRef, dispatch, episode, user])
 
   if (!episode) return null
 

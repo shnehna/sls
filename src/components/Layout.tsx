@@ -55,9 +55,12 @@ export default function Layout() {
             <Link to="/" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
               Home
             </Link>
-            <Link to="/search?q=english learning" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
-              Practice feeds
-            </Link>
+              <Link to="/library" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+                My Library
+              </Link>
+              <Link to="/search?q=english learning" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+                Practice feeds
+              </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -97,7 +100,8 @@ export default function Layout() {
                 {accountOpen && (
                   <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-ink-900/95 p-2 shadow-panel backdrop-blur-xl">
                     <Link to="/account" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">Account</Link>
-                    <Link to="/search?q=saved" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">My Library</Link>
+                    <Link to="/library" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">My Library</Link>
+                    <Link to="/library/progress" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">Continue Practice</Link>
                     <button type="button" onClick={() => void handleLogout()} className="block w-full rounded-xl px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/10 hover:text-white">Logout</button>
                   </div>
                 )}

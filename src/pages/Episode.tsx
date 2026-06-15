@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { getCachedEpisodeById, getEpisodeById } from '../api/client'
 import type { Episode as EpisodeType } from '../api/types'
 import AudioPlayer from '../components/AudioPlayer'
+import LockedTranscriptPanel from '../components/LockedTranscriptPanel'
 import ShadowControls from '../components/ShadowControls'
 import Transcript from '../components/Transcript'
+import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
 import { formatDate, formatDuration, formatTime, truncate } from '../utils/format'
 
@@ -29,6 +31,8 @@ function EpisodeArtwork({ src, title }: { src?: string; title: string }) {
 
 export default function Episode() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const { user } = useAuth()
   const episodeId = id ? Number(id) : null
   const [episode, setEpisode] = useState<EpisodeType | null>(null)
   const [loading, setLoading] = useState(true)
@@ -43,6 +47,7 @@ export default function Episode() {
     transcriptSource,
     transcriptError,
     transcriptJob,
+    transcriptId,
     hasRemoteTranscript,
     loadEpisode,
     refreshTranscript,
@@ -94,6 +99,11 @@ export default function Episode() {
   }, [episodeId, loadEpisode])
 
   const activeCue = useMemo(() => cues[state.activeCueIndex], [cues, state.activeCueIndex])
+
+  useEffect(() => {
+    const timeParam = Number(searchParams.get('t'))
+    if (episode && Number.isFinite(timeParam) && timeParam > 0) seek(timeParam)
+  }, [episode?.id, searchParams, seek])
 
   useEffect(() => {
     if (!loopCurrentCue || !activeCue) return
@@ -178,80 +188,92 @@ export default function Episode() {
           <AudioPlayer compact />
 
 
-          <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-            <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Transcript automation</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              {transcriptStatus === 'ready'
-                ? 'Reusable reading cues are available for this episode.'
-                : transcriptStatus === 'processing'
-                  ? `Backend STT is ${transcriptJob?.status.replace(/_/g, ' ') || 'processing'} and will refresh automatically.`
-                  : hasRemoteTranscript
-                    ? 'A remote transcript is available and can be parsed into the local store.'
-                    : 'No transcript metadata was found. Generate a synced transcript from the episode audio.'}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {hasRemoteTranscript && transcriptSource !== 'stored' && (
-                <button onClick={importCurrentTranscript} className="rounded-full bg-ember-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-ember-200">
-                  Import transcript
-                </button>
-              )}
-              {!hasRemoteTranscript && transcriptStatus !== 'processing' && (
-                <button onClick={() => createTranscriptJob()} className="rounded-full bg-aurora-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-aurora-200">
-                  Generate transcript
-                </button>
-              )}
-              <button onClick={refreshTranscript} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/20">
-                Refresh
-              </button>
-            </div>
-            {transcriptError && <p className="mt-3 text-xs leading-5 text-rose-200">{transcriptError}</p>}
-          </section>
+          {user && (
+            <>
+              <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
+                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Transcript automation</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  {transcriptStatus === 'ready'
+                    ? 'Reusable reading cues are available for this episode.'
+                    : transcriptStatus === 'processing'
+                      ? `Backend STT is ${transcriptJob?.status.replace(/_/g, ' ') || 'processing'} and will refresh automatically.`
+                      : hasRemoteTranscript
+                        ? 'A remote transcript is available and can be parsed into the local store.'
+                        : 'No transcript metadata was found. Generate a synced transcript from the episode audio.'}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {hasRemoteTranscript && transcriptSource !== 'stored' && (
+                    <button onClick={importCurrentTranscript} className="rounded-full bg-ember-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-ember-200">
+                      Import transcript
+                    </button>
+                  )}
+                  {!hasRemoteTranscript && transcriptStatus !== 'processing' && (
+                    <button onClick={() => createTranscriptJob()} className="rounded-full bg-aurora-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-aurora-200">
+                      Generate transcript
+                    </button>
+                  )}
+                  <button onClick={refreshTranscript} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/20">
+                    Refresh
+                  </button>
+                </div>
+                {transcriptError && <p className="mt-3 text-xs leading-5 text-rose-200">{transcriptError}</p>}
+              </section>
 
-          <ShadowControls
-            playbackRate={state.playbackRate}
-            activeStart={activeCue?.startTime}
-            activeEnd={activeCue?.endTime}
-            onRateChange={setRate}
-            onPrevCue={prevCue}
-            onNextCue={nextCue}
-            onRepeatCue={repeatActiveCue}
-            onLoopChange={setLoopCurrentCue}
-          />
+              <ShadowControls
+                playbackRate={state.playbackRate}
+                activeStart={activeCue?.startTime}
+                activeEnd={activeCue?.endTime}
+                onRateChange={setRate}
+                onPrevCue={prevCue}
+                onNextCue={nextCue}
+                onRepeatCue={repeatActiveCue}
+                onLoopChange={setLoopCurrentCue}
+              />
 
-          {activeCue && (
-            <div className="rounded-2xl border border-aurora-300/15 bg-aurora-300/10 p-4">
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-200">Current cue</p>
-              <p className="mt-2 font-mono text-sm text-slate-100">{formatTime(activeCue.startTime)} — {formatTime(activeCue.endTime)}</p>
-              <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{activeCue.text}</p>
-            </div>
+              {activeCue && (
+                <div className="rounded-2xl border border-aurora-300/15 bg-aurora-300/10 p-4">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-200">Current cue</p>
+                  <p className="mt-2 font-mono text-sm text-slate-100">{formatTime(activeCue.startTime)} — {formatTime(activeCue.endTime)}</p>
+                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{activeCue.text}</p>
+                </div>
+              )}
+
+              <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
+                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Keyboard</h3>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <kbd className="studio-kbd">← previous</kbd>
+                  <kbd className="studio-kbd">→ next</kbd>
+                  <kbd className="studio-kbd">R repeat</kbd>
+                  <kbd className="studio-kbd">Space play</kbd>
+                </div>
+              </section>
+            </>
           )}
-
-          <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-            <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Keyboard</h3>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <kbd className="studio-kbd">← previous</kbd>
-              <kbd className="studio-kbd">→ next</kbd>
-              <kbd className="studio-kbd">R repeat</kbd>
-              <kbd className="studio-kbd">Space play</kbd>
-            </div>
-          </section>
         </aside>
 
-        <Transcript
-          cues={cues}
-          currentTime={state.currentTime}
-          activeCueIndex={state.activeCueIndex}
-          onCueClick={seekToCue}
-          loading={loadingTranscript}
-          status={transcriptStatus}
-          source={transcriptSource}
-          error={transcriptError}
-          job={transcriptJob}
-          hasRemoteTranscript={hasRemoteTranscript}
-          onImportTranscript={importCurrentTranscript}
-          onCreateJob={() => createTranscriptJob()}
-          onRefresh={refreshTranscript}
-        />
+        {user ? (
+          <Transcript
+            cues={cues}
+            currentTime={state.currentTime}
+            activeCueIndex={state.activeCueIndex}
+            onCueClick={seekToCue}
+            loading={loadingTranscript}
+            status={transcriptStatus}
+            source={transcriptSource}
+            error={transcriptError}
+            job={transcriptJob}
+            transcriptId={transcriptId || undefined}
+            episodeId={episode.id}
+            episodeTitle={episode.title}
+            podcastTitle={episode.feedTitle}
+            hasRemoteTranscript={hasRemoteTranscript}
+            onImportTranscript={importCurrentTranscript}
+            onCreateJob={() => createTranscriptJob()}
+            onRefresh={refreshTranscript}
+          />
+        ) : (
+          <LockedTranscriptPanel />
+        )}
       </div>
     </div>
   )

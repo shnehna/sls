@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
 import type { Episode, PlayerState, PlayerAction, Transcript, TranscriptCue, TranscriptJob } from '../api/types'
+import { getEpisodeProgress as getSavedEpisodeProgress } from '../api/library'
+import { useAuth } from './AuthContext'
 import { parseTranscript, findActiveCueIndex } from '../utils/transcript'
 import {
   createTranscriptionJob as createTranscriptionJobRequest,
@@ -61,6 +63,7 @@ interface PlayerContextValue {
   transcriptSource: TranscriptSource
   transcriptError: string | null
   transcriptJob: TranscriptJob | null
+  transcriptId: string | null
   hasRemoteTranscript: boolean
   dispatch: React.Dispatch<PlayerAction>
   loadEpisode: (episode: Episode) => void
@@ -88,6 +91,7 @@ function getRemoteTranscript(episode: Episode): Transcript | null {
 }
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth()
   const [state, dispatch] = useReducer(playerReducer, initialState)
   const [cues, setCues] = React.useState<TranscriptCue[]>([])
   const [loadingTranscript, setLoadingTranscript] = React.useState(false)
@@ -95,6 +99,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [transcriptSource, setTranscriptSource] = React.useState<TranscriptSource>('none')
   const [transcriptError, setTranscriptError] = React.useState<string | null>(null)
   const [transcriptJob, setTranscriptJob] = React.useState<TranscriptJob | null>(null)
+  const [transcriptId, setTranscriptId] = React.useState<string | null>(null)
+  const resumedEpisodeRef = useRef<number | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // Sync audio element state
@@ -130,6 +136,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setCues(parsed)
       setTranscriptStatus(parsed.length > 0 ? 'ready' : 'missing')
       setTranscriptSource(parsed.length > 0 ? 'remote-fallback' : 'none')
+      setTranscriptId(null)
       return parsed.length > 0
     } catch (err) {
       console.error('Failed to load remote transcript:', err)
@@ -138,6 +145,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const loadTranscriptForEpisode = useCallback(async (episode: Episode, options?: { forceRefresh?: boolean; silent?: boolean }) => {
+    if (!user) {
+      setCues([])
+      setLoadingTranscript(false)
+      setTranscriptStatus('idle')
+      setTranscriptSource('none')
+      setTranscriptError(null)
+      setTranscriptJob(null)
+      setTranscriptId(null)
+      return
+    }
+
     const remote = getRemoteTranscript(episode)
     if (!options?.silent) {
       setLoadingTranscript(true)
@@ -145,6 +163,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setTranscriptSource('none')
       setTranscriptError(null)
       setTranscriptJob(null)
+      setTranscriptId(null)
     }
 
     try {
@@ -158,6 +177,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setTranscriptStatus('ready')
         setTranscriptSource('stored')
         setTranscriptJob(null)
+        setTranscriptId(stored.transcript?.id || null)
         return
       }
 
@@ -166,6 +186,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setTranscriptStatus('processing')
         setTranscriptSource('none')
         setTranscriptJob(stored.job || null)
+        setTranscriptId(null)
         return
       }
 
@@ -175,6 +196,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setTranscriptSource('none')
         setTranscriptError(stored.errorMessage || 'Transcript processing failed')
         setTranscriptJob(stored.job || null)
+        setTranscriptId(null)
         return
       }
     } catch (err) {
@@ -190,16 +212,19 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setCues([])
     setTranscriptStatus('missing')
     setTranscriptSource('none')
-  }, [loadRemoteTranscript])
+    setTranscriptId(null)
+  }, [loadRemoteTranscript, user])
 
-  // Load transcript when episode changes
+  // Load transcript when episode/auth state changes. Logged-out users never call transcript APIs.
   useEffect(() => {
-    if (!state.episode) {
+    if (!state.episode || !user) {
       setCues([])
+      setLoadingTranscript(false)
       setTranscriptStatus('idle')
       setTranscriptSource('none')
       setTranscriptError(null)
       setTranscriptJob(null)
+      setTranscriptId(null)
       return
     }
 
@@ -221,7 +246,23 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [state.episode, loadTranscriptForEpisode])
+  }, [state.episode, user, loadTranscriptForEpisode])
+
+  useEffect(() => {
+    if (!state.episode || !user || resumedEpisodeRef.current === state.episode.id) return
+    let cancelled = false
+    getSavedEpisodeProgress(state.episode.id)
+      .then(({ progress }) => {
+        if (cancelled || !progress || progress.positionSeconds < 5) return
+        resumedEpisodeRef.current = state.episode!.id
+        dispatch({ type: 'SET_TIME', time: progress.positionSeconds })
+        if (audioRef.current) audioRef.current.currentTime = progress.positionSeconds
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [state.episode, user])
 
   // Sync active cue with current time
   useEffect(() => {
@@ -238,16 +279,20 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const refreshTranscript = useCallback(async () => {
     if (!state.episode) return
+    if (!user) {
+      setTranscriptError('Log in to refresh transcripts')
+      return
+    }
     setLoadingTranscript(true)
     try {
       await loadTranscriptForEpisode(state.episode, { forceRefresh: true })
     } finally {
       setLoadingTranscript(false)
     }
-  }, [loadTranscriptForEpisode, state.episode])
+  }, [loadTranscriptForEpisode, state.episode, user])
 
   useEffect(() => {
-    if (!state.episode || transcriptStatus !== 'processing') return
+    if (!state.episode || !user || transcriptStatus !== 'processing') return
 
     const interval = window.setInterval(() => {
       loadTranscriptForEpisode(state.episode!, { forceRefresh: true, silent: true }).catch((err) => {
@@ -256,10 +301,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }, 6000)
 
     return () => window.clearInterval(interval)
-  }, [loadTranscriptForEpisode, state.episode, transcriptStatus])
+  }, [loadTranscriptForEpisode, state.episode, transcriptStatus, user])
 
   const importCurrentTranscript = useCallback(async () => {
     if (!state.episode) return
+    if (!user) {
+      setTranscriptError('Log in to import transcripts')
+      return
+    }
     const remote = getRemoteTranscript(state.episode)
     if (!remote) {
       setTranscriptError('No remote transcript is available to import')
@@ -284,10 +333,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoadingTranscript(false)
     }
-  }, [loadTranscriptForEpisode, state.episode])
+  }, [loadTranscriptForEpisode, state.episode, user])
 
   const createTranscriptJob = useCallback(async (provider = 'auto') => {
     if (!state.episode) return
+    if (!user) {
+      setTranscriptError('Log in to generate transcripts')
+      return
+    }
     setLoadingTranscript(true)
     setTranscriptError(null)
     try {
@@ -301,13 +354,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setTranscriptJob(result.job)
       setTranscriptStatus('processing')
       setTranscriptSource('none')
+      setTranscriptId(null)
     } catch (err) {
       setTranscriptStatus('error')
       setTranscriptError(err instanceof Error ? err.message : 'Failed to create transcription job')
     } finally {
       setLoadingTranscript(false)
     }
-  }, [state.episode])
+  }, [state.episode, user])
 
   const play = useCallback(() => dispatch({ type: 'PLAY' }), [])
   const pause = useCallback(() => dispatch({ type: 'PAUSE' }), [])
@@ -362,6 +416,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setTranscriptSource('none')
     setTranscriptError(null)
     setTranscriptJob(null)
+    setTranscriptId(null)
   }, [])
 
   const hasRemoteTranscript = Boolean(state.episode && getRemoteTranscript(state.episode))
@@ -375,6 +430,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     transcriptSource,
     transcriptError,
     transcriptJob,
+    transcriptId,
     hasRemoteTranscript,
     dispatch,
     loadEpisode,

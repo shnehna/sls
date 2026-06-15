@@ -8,6 +8,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import AuthCallback from './pages/AuthCallback'
 import Account from './pages/Account'
+import Library from './pages/Library'
+import SavedPodcasts, { Bookmarks, Progress } from './pages/SavedPodcasts'
 import Onboarding from './pages/Onboarding'
 
 export default function App() {
@@ -18,6 +20,10 @@ export default function App() {
         <Route path="search" element={<Search />} />
         <Route path="podcast/:id" element={<Podcast />} />
         <Route path="episode/:id" element={<Episode />} />
+        <Route path="library" element={<Library />} />
+        <Route path="library/saved" element={<SavedPodcasts />} />
+        <Route path="library/bookmarks" element={<Bookmarks />} />
+        <Route path="library/progress" element={<Progress />} />
         <Route path="auth/login" element={<Login />} />
         <Route path="auth/register" element={<Register />} />
         <Route path="auth/callback/github" element={<AuthCallback />} />

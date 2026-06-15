@@ -1,14 +1,15 @@
+import { requireCurrentUser } from '../lib/auth'
 import { jsonError } from '../lib/http'
 import { parseAllowedRemoteUrl } from '../lib/security'
+import type { FunctionContext } from '../lib/types'
 
-interface TranscriptContext {
-  request: Request
-}
-
-export const onRequest = async ({ request }: TranscriptContext): Promise<Response> => {
+export const onRequest = async ({ request, env }: FunctionContext): Promise<Response> => {
   if (!['GET', 'HEAD'].includes(request.method)) {
     return jsonError('Method not allowed', 405)
   }
+
+  const current = await requireCurrentUser(request, env)
+  if (current instanceof Response) return current
 
   const requestUrl = new URL(request.url)
   const transcriptUrl = requestUrl.searchParams.get('url')
@@ -30,7 +31,7 @@ export const onRequest = async ({ request }: TranscriptContext): Promise<Respons
 
   const headers = new Headers()
   headers.set('Content-Type', upstream.headers.get('Content-Type') || 'text/plain; charset=utf-8')
-  headers.set('Cache-Control', 'public, max-age=86400')
+  headers.set('Cache-Control', 'private, max-age=86400')
 
   return new Response(upstream.body, {
     status: upstream.status,

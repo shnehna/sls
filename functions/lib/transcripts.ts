@@ -55,6 +55,7 @@ export function mapJobRow(row: JobRow): TranscriptJob {
     providerStatus: optionalString(row.provider_status),
     resultTranscriptId: optionalString(row.result_transcript_id),
     errorMessage: optionalString(row.error_message),
+    createdByUserId: optionalString(row.created_by_user_id),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: optionalString(row.completed_at),
@@ -245,15 +246,17 @@ export async function createTranscriptionJob(db: D1Database, input: {
   audioUrl: string
   provider?: string
   requestPayload?: unknown
+  createdByUserId?: string
 }): Promise<TranscriptJob> {
   const provider = input.provider || 'manual'
   const existing = await db.prepare(`
     SELECT * FROM transcription_jobs
     WHERE episode_id = ? AND audio_url = ? AND provider = ?
+      AND COALESCE(created_by_user_id, '') = COALESCE(?, '')
       AND status IN (${OPEN_JOB_STATUSES.map(() => '?').join(', ')})
     ORDER BY created_at DESC
     LIMIT 1
-  `).bind(input.episodeId, input.audioUrl, provider, ...OPEN_JOB_STATUSES).first<JobRow>()
+  `).bind(input.episodeId, input.audioUrl, provider, input.createdByUserId || null, ...OPEN_JOB_STATUSES).first<JobRow>()
 
   if (existing) return mapJobRow(existing)
 
@@ -263,8 +266,8 @@ export async function createTranscriptionJob(db: D1Database, input: {
 
   await db.prepare(`
     INSERT INTO transcription_jobs (
-      id, episode_id, episode_guid, audio_url, provider, status, request_payload, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, episode_id, episode_guid, audio_url, provider, status, request_payload, created_by_user_id, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     id,
     input.episodeId,
@@ -273,6 +276,7 @@ export async function createTranscriptionJob(db: D1Database, input: {
     provider,
     status,
     input.requestPayload ? JSON.stringify(input.requestPayload) : null,
+    input.createdByUserId || null,
     timestamp,
     timestamp
   ).run()
@@ -284,6 +288,15 @@ export async function createTranscriptionJob(db: D1Database, input: {
 
 export async function getJob(db: D1Database, jobId: string): Promise<TranscriptJob | null> {
   const row = await db.prepare('SELECT * FROM transcription_jobs WHERE id = ?').bind(jobId).first<JobRow>()
+  return row ? mapJobRow(row) : null
+}
+
+export async function getJobForUser(db: D1Database, jobId: string, userId: string): Promise<TranscriptJob | null> {
+  const row = await db.prepare(`
+    SELECT * FROM transcription_jobs
+    WHERE id = ? AND created_by_user_id = ?
+    LIMIT 1
+  `).bind(jobId, userId).first<JobRow>()
   return row ? mapJobRow(row) : null
 }
 

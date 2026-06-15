@@ -85,6 +85,7 @@ export interface JobRow {
   provider_status: string | null
   result_transcript_id: string | null
   error_message: string | null
+  created_by_user_id: string | null
   created_at: string
   updated_at: string
   completed_at: string | null

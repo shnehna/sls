@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import type { TranscriptCue, TranscriptJob } from '../api/types'
 import { formatTime } from '../utils/format'
+import BookmarkCueButton from './BookmarkCueButton'
 import SpeakerLabel from './SpeakerLabel'
 
 interface Props {
@@ -13,6 +14,10 @@ interface Props {
   source?: 'stored' | 'remote-fallback' | 'none'
   error?: string | null
   job?: TranscriptJob | null
+  transcriptId?: string
+  episodeId?: number
+  episodeTitle?: string
+  podcastTitle?: string
   hasRemoteTranscript?: boolean
   onImportTranscript?: () => void
   onCreateJob?: () => void
@@ -29,12 +34,16 @@ export default function Transcript({
   source = 'none',
   error,
   job,
+  transcriptId,
+  episodeId,
+  episodeTitle,
+  podcastTitle,
   hasRemoteTranscript,
   onImportTranscript,
   onCreateJob,
   onRefresh,
 }: Props) {
-  const activeRef = useRef<HTMLButtonElement | null>(null)
+  const activeRef = useRef<HTMLDivElement | null>(null)
   const speakers = useMemo(
     () => Array.from(new Set(cues.map((cue) => cue.speaker).filter((speaker): speaker is string => Boolean(speaker)))),
     [cues]
@@ -143,24 +152,45 @@ export default function Transcript({
           const active = index === activeCueIndex
           const played = currentTime > cue.endTime
           return (
-            <button
+            <div
               key={`${cue.startTime}-${index}`}
               ref={active ? activeRef : null}
-              onClick={() => onCueClick(index)}
               className={`transcript-cue w-full ${active ? 'active' : ''} ${played ? 'played' : ''}`}
             >
               <div className="grid grid-cols-[3.25rem_1fr] gap-3 sm:grid-cols-[4.5rem_1fr] sm:gap-5">
-                <span className={`pt-1 font-mono text-[11px] tabular-nums ${active ? 'text-ember-600' : 'text-paper-700/42'}`}>
+                <button
+                  type="button"
+                  onClick={() => onCueClick(index)}
+                  className={`pt-1 text-left font-mono text-[11px] tabular-nums ${active ? 'text-ember-600' : 'text-paper-700/42'}`}
+                >
                   {formatTime(cue.startTime)}
-                </span>
+                </button>
                 <div className="min-w-0">
-                  {cue.speaker && <SpeakerLabel name={cue.speaker} />}
-                  <p className={`mt-2 text-base leading-8 sm:text-lg ${active ? 'font-semibold text-paper-900' : 'text-paper-900/74'}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {cue.speaker && <SpeakerLabel name={cue.speaker} />}
+                    {episodeId && (
+                      <BookmarkCueButton
+                        episodeId={episodeId}
+                        transcriptId={transcriptId}
+                        cueIndex={index}
+                        cueText={cue.text}
+                        cueStartTime={cue.startTime}
+                        cueEndTime={cue.endTime}
+                        episodeTitle={episodeTitle}
+                        podcastTitle={podcastTitle}
+                      />
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onCueClick(index)}
+                    className={`mt-2 block w-full text-left text-base leading-8 sm:text-lg ${active ? 'font-semibold text-paper-900' : 'text-paper-900/74'}`}
+                  >
                     {cue.text}
-                  </p>
+                  </button>
                 </div>
               </div>
-            </button>
+            </div>
           )
         })}
       </div>
