@@ -27,6 +27,23 @@ PODCAST_INDEX_KEY=your_key
 PODCAST_INDEX_SECRET=your_secret
 ```
 
+Authentication and account features also require these variables for Pages Functions:
+
+```bash
+AUTH_PASSWORD_PEPPER=long_random_password_pepper
+AUTH_SESSION_SECRET=long_random_session_secret
+AUTH_SESSION_DAYS=30
+GITHUB_CLIENT_ID=your_github_oauth_client_id
+GITHUB_CLIENT_SECRET=your_github_oauth_client_secret
+APP_URL=http://localhost:8788
+```
+
+For GitHub OAuth, configure the callback URL in the GitHub OAuth app as:
+
+```text
+<APP_URL>/api/auth/github/callback
+```
+
 This file is intentionally ignored by git. The current project already includes a local `.env.local` for this workspace using the credentials you supplied.
 
 Install dependencies and run:
@@ -40,6 +57,13 @@ Open the Vite URL, usually:
 
 ```text
 http://localhost:5173
+```
+
+Apply D1 migrations when working with Pages Functions auth or transcripts:
+
+```bash
+npm run db:migrate:local
+npm run db:migrate:remote
 ```
 
 ## Important security note

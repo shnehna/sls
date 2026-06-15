@@ -30,6 +30,12 @@ export interface Env {
   STT_WEBHOOK_SECRET?: string
   DEEPGRAM_API_KEY?: string
   DEEPGRAM_MODEL?: string
+  AUTH_PASSWORD_PEPPER?: string
+  AUTH_SESSION_SECRET?: string
+  AUTH_SESSION_DAYS?: string
+  GITHUB_CLIENT_ID?: string
+  GITHUB_CLIENT_SECRET?: string
+  APP_URL?: string
 }
 
 export interface FunctionContext<Params extends object = Record<string, string | string[] | undefined>> {
