@@ -72,7 +72,7 @@ export default function Account() {
               <p className="mt-1 text-sm text-slate-400">@{user.username}</p>
             </div>
           </div>
-          <Link to="/search?q=english learning" className="studio-button-ghost">Find practice feeds</Link>
+          <Link to="/search?q=conversation" className="studio-button-ghost">Find practice feeds</Link>
         </div>
       </div>
 

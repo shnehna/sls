@@ -1,14 +1,55 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getCachedSearchByTerm, searchByTerm } from '../api/client'
+import { getPodcastSaveCounts } from '../api/library'
 import type { PodcastFeed } from '../api/types'
 import PodcastCard from '../components/PodcastCard'
+import { filterEnglishPodcasts, podcastSearchText } from '../utils/podcast'
+
+type SaveCountMap = Record<number, number>
+
+function textMatchScore(podcast: PodcastFeed, query: string): number {
+  const text = podcastSearchText(podcast)
+  const title = podcast.title.toLowerCase()
+  const tokens = query.toLowerCase().split(/\s+/).filter(Boolean)
+  if (tokens.length === 0) return 0
+
+  return tokens.reduce((score, token) => {
+    if (title.includes(token)) score += 24
+    if (text.includes(token)) score += 8
+    return score
+  }, 0)
+}
+
+function saveCountBoost(saveCount: number): number {
+  return Math.log10(saveCount + 1) * 12
+}
+
+function rankSearchResults(podcasts: PodcastFeed[], query: string, saveCounts: SaveCountMap): PodcastFeed[] {
+  return podcasts
+    .map((podcast, index) => ({
+      podcast,
+      score: textMatchScore(podcast, query) + saveCountBoost(saveCounts[podcast.id] || 0) - index * 0.01,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map(({ podcast }) => podcast)
+}
+
+async function loadSaveCounts(podcasts: PodcastFeed[]): Promise<SaveCountMap> {
+  try {
+    const { counts } = await getPodcastSaveCounts(podcasts.map((podcast) => podcast.id))
+    return Object.fromEntries(podcasts.map((podcast) => [podcast.id, counts[String(podcast.id)] || 0]))
+  } catch {
+    return Object.fromEntries(podcasts.map((podcast) => [podcast.id, 0]))
+  }
+}
 
 export default function Search() {
   const [params, setParams] = useSearchParams()
   const query = params.get('q') || ''
   const [input, setInput] = useState(query)
   const [results, setResults] = useState<PodcastFeed[]>([])
+  const [saveCounts, setSaveCounts] = useState<SaveCountMap>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -19,6 +60,7 @@ export default function Search() {
 
     if (!nextQuery.trim()) {
       setResults([])
+      setSaveCounts({})
       setLoading(false)
       setError(null)
       return () => {
@@ -26,19 +68,29 @@ export default function Search() {
       }
     }
 
-    const cached = getCachedSearchByTerm(nextQuery, 40)
+    const cached = getCachedSearchByTerm(nextQuery, 80)
     if (cached) {
-      setResults(cached.feeds || [])
+      const cachedEnglish = filterEnglishPodcasts(cached.feeds || [])
+      setResults(cachedEnglish.slice(0, 40))
       setLoading(false)
+      loadSaveCounts(cachedEnglish).then((counts) => {
+        if (cancelled) return
+        setSaveCounts(counts)
+        setResults(rankSearchResults(cachedEnglish, nextQuery, counts).slice(0, 40))
+      })
     } else {
       setLoading(true)
     }
     setError(null)
 
-    searchByTerm(nextQuery, 40, cached ? { forceRefresh: true } : undefined)
-      .then((data) => {
+    searchByTerm(nextQuery, 80, cached ? { forceRefresh: true } : undefined)
+      .then(async (data) => {
         if (cancelled) return
-        setResults(data.feeds || [])
+        const englishFeeds = filterEnglishPodcasts(data.feeds || [])
+        const counts = await loadSaveCounts(englishFeeds)
+        if (cancelled) return
+        setSaveCounts(counts)
+        setResults(rankSearchResults(englishFeeds, nextQuery, counts).slice(0, 40))
         setError(null)
       })
       .catch((err) => {
@@ -99,7 +151,19 @@ export default function Search() {
             {results.length} results for <span className="text-ember-200">“{query}”</span>
           </p>
           <div className="grid gap-4 md:grid-cols-2">
-            {results.map((podcast) => <PodcastCard key={podcast.id} podcast={podcast} />)}
+            {results.map((podcast) => (
+              <PodcastCard
+                key={podcast.id}
+                podcast={podcast}
+                saveCount={saveCounts[podcast.id] || 0}
+                onSaveCountChange={(podcastId, updater) => {
+                  setSaveCounts((current) => ({
+                    ...current,
+                    [podcastId]: Math.max(0, updater(current[podcastId] || 0)),
+                  }))
+                }}
+              />
+            ))}
           </div>
         </div>
       )}

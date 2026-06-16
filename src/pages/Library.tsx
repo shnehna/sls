@@ -33,7 +33,7 @@ export default function Library() {
             <h1 className="studio-title text-5xl leading-none">Welcome back, {user.displayName}</h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">Continue your English shadowing practice from saved podcasts, progress, and transcript bookmarks.</p>
           </div>
-          <Link to="/search?q=english learning" className="studio-button-primary">Find practice feeds</Link>
+          <Link to="/search?q=conversation" className="studio-button-primary">Find practice feeds</Link>
         </div>
         <div className="mt-7 grid gap-3 sm:grid-cols-4">
           <Stat label="Saved podcasts" value={library?.stats.savedPodcastCount || 0} />

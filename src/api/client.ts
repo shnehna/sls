@@ -1,5 +1,7 @@
 import type {
   SearchResponse,
+  TrendingPodcastsResponse,
+  CategoryListResponse,
   PodcastResponse,
   EpisodesResponse,
   EpisodeResponse,
@@ -19,6 +21,8 @@ const HOUR = 60 * MINUTE
 
 const CACHE_TTL = {
   recent: 30 * MINUTE,
+  categories: 24 * HOUR,
+  trending: 30 * MINUTE,
   search: 10 * MINUTE,
   podcast: 24 * HOUR,
   episodes: 12 * HOUR,
@@ -34,6 +38,14 @@ interface CacheEntry<T> {
 
 interface CacheOptions {
   forceRefresh?: boolean
+}
+
+interface TrendingOptions {
+  max?: number
+  since?: number
+  lang?: string
+  cat?: string
+  notcat?: string
 }
 
 function buildApiUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
@@ -150,6 +162,51 @@ export async function searchByTerm(
     apiCacheKey('/search/byterm', params),
     CACHE_TTL.search,
     () => fetchApi<SearchResponse>('/search/byterm', params),
+    options
+  )
+}
+
+// ==================== Categories ====================
+
+export function getCachedCategoryList(): CategoryListResponse | null {
+  return getCachedValue<CategoryListResponse>(apiCacheKey('/categories/list'))
+}
+
+export async function getCategoryList(options?: CacheOptions): Promise<CategoryListResponse> {
+  return fetchWithCache(
+    apiCacheKey('/categories/list'),
+    CACHE_TTL.categories,
+    () => fetchApi<CategoryListResponse>('/categories/list'),
+    options
+  )
+}
+
+// ==================== Trending Podcasts ====================
+
+function trendingParams(opts?: TrendingOptions): Record<string, string | number | boolean | undefined> {
+  return {
+    max: opts?.max ?? 50,
+    since: opts?.since,
+    lang: opts?.lang ?? 'en',
+    cat: opts?.cat,
+    notcat: opts?.notcat,
+  }
+}
+
+export function getCachedTrendingPodcasts(opts?: TrendingOptions): TrendingPodcastsResponse | null {
+  const params = trendingParams(opts)
+  return getCachedValue<TrendingPodcastsResponse>(apiCacheKey('/podcasts/trending', params))
+}
+
+export async function getTrendingPodcasts(
+  opts?: TrendingOptions,
+  options?: CacheOptions
+): Promise<TrendingPodcastsResponse> {
+  const params = trendingParams(opts)
+  return fetchWithCache(
+    apiCacheKey('/podcasts/trending', params),
+    CACHE_TTL.trending,
+    () => fetchApi<TrendingPodcastsResponse>('/podcasts/trending', params),
     options
   )
 }

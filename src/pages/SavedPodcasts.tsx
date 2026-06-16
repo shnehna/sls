@@ -20,7 +20,7 @@ export default function SavedPodcasts() {
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">Podcasts you saved for focused shadowing practice.</p>
       </header>
       {savedPodcasts.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[.05] p-6 text-slate-300">No saved podcasts yet. <Link to="/search?q=english learning" className="text-aurora-200">Find one to save.</Link></div>
+        <div className="rounded-2xl border border-white/10 bg-white/[.05] p-6 text-slate-300">No saved podcasts yet. <Link to="/search?q=conversation" className="text-aurora-200">Find one to save.</Link></div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {savedPodcasts.map((podcast) => (

@@ -124,6 +124,12 @@ export function removeSavedPodcast(podcastId: number): Promise<{ ok: true }> {
   return fetchLibraryJson<{ ok: true }>(`/api/me/saved-podcasts/${podcastId}`, { method: 'DELETE' })
 }
 
+export function getPodcastSaveCounts(podcastIds: number[]): Promise<{ counts: Record<string, number> }> {
+  const ids = Array.from(new Set(podcastIds.filter((id) => Number.isInteger(id) && id > 0))).slice(0, 100)
+  const params = new URLSearchParams({ ids: ids.join(',') })
+  return fetchLibraryJson<{ counts: Record<string, number> }>(`/api/podcasts/save-counts?${params.toString()}`)
+}
+
 export function getEpisodeProgressList(): Promise<{ progress: EpisodeProgressItem[] }> {
   return fetchLibraryJson<{ progress: EpisodeProgressItem[] }>('/api/me/episode-progress')
 }

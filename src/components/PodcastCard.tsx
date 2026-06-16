@@ -6,12 +6,15 @@ import { truncate } from '../utils/format'
 
 interface Props {
   podcast: PodcastFeed
+  saveCount?: number
+  onSaveCountChange?: (podcastId: number, updater: (current: number) => number) => void
 }
 
-export default function PodcastCard({ podcast }: Props) {
+export default function PodcastCard({ podcast, saveCount, onSaveCountChange }: Props) {
   const [imageFailed, setImageFailed] = useState(false)
   const categories = podcast.categories ? Object.values(podcast.categories).slice(0, 2) : []
   const artwork = podcast.artwork || podcast.image
+  const visibleSaveCount = saveCount ?? 0
 
   return (
     <article className="studio-card group flex gap-4 p-4">
@@ -36,6 +39,7 @@ export default function PodcastCard({ podcast }: Props) {
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {podcast.language && <span className="studio-chip uppercase">{podcast.language}</span>}
             {podcast.episodeCount !== undefined && <span className="studio-chip">{podcast.episodeCount} eps</span>}
+            <span className="studio-chip">{visibleSaveCount} {visibleSaveCount === 1 ? 'save' : 'saves'}</span>
           </div>
           <h3 className="truncate text-base font-semibold text-slate-50 transition hover:text-ember-100">
             {podcast.title}
@@ -49,7 +53,13 @@ export default function PodcastCard({ podcast }: Props) {
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => <span key={category} className="font-mono text-[11px] text-aurora-200/80">#{category}</span>)}
           </div>
-          <SavedPodcastButton podcast={podcast} compact />
+          <SavedPodcastButton
+            podcast={podcast}
+            compact
+            onSavedChange={(saved) => {
+              onSaveCountChange?.(podcast.id, (current) => current + (saved ? 1 : -1))
+            }}
+          />
         </div>
       </div>
     </article>

@@ -44,6 +44,7 @@ export interface PodcastFeed {
   newestItemPubdate?: number
   newestItemPublishTime?: number
   popularity?: number
+  trendScore?: number
   value?: ValueBlock
   funding?: Funding
 }
@@ -154,6 +155,23 @@ export interface SearchResponse extends ApiResponse {
   feeds: PodcastFeed[]
   count: number
   query: string
+}
+
+export interface TrendingPodcastsResponse extends ApiResponse {
+  feeds: PodcastFeed[]
+  count: number
+  max: number
+  since?: number
+}
+
+export interface PodcastCategory {
+  id: number
+  name: string
+}
+
+export interface CategoryListResponse extends ApiResponse {
+  feeds: PodcastCategory[] | null
+  count: number
 }
 
 export interface PodcastResponse extends ApiResponse {

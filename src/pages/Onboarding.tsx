@@ -12,7 +12,7 @@ export default function Onboarding() {
   const [theme, setTheme] = useState(themes[0])
 
   const finish = () => {
-    navigate('/search?q=english learning', { replace: true })
+    navigate('/search?q=conversation', { replace: true })
   }
 
   return (

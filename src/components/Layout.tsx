@@ -58,7 +58,7 @@ export default function Layout() {
               <Link to="/library" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
                 My Library
               </Link>
-              <Link to="/search?q=english learning" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+              <Link to="/search?q=conversation" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
                 Practice feeds
               </Link>
           </nav>

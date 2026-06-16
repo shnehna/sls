@@ -42,6 +42,11 @@ interface SavedPodcastRow {
   updated_at: string
 }
 
+interface SaveCountRow {
+  podcast_id: number
+  save_count: number
+}
+
 export interface ProgressInput {
   episodeId: number
   podcastId?: number
@@ -229,6 +234,25 @@ export async function removeSavedPodcast(db: D1Database, userId: string, podcast
   await db.prepare('DELETE FROM user_saved_podcasts WHERE user_id = ? AND podcast_id = ?')
     .bind(userId, podcastId)
     .run()
+}
+
+export async function listPodcastSaveCounts(db: D1Database, podcastIds: number[]): Promise<Record<string, number>> {
+  const uniqueIds = Array.from(new Set(podcastIds.filter((id) => Number.isInteger(id) && id > 0))).slice(0, 100)
+  if (uniqueIds.length === 0) return {}
+
+  const placeholders = uniqueIds.map(() => '?').join(', ')
+  const rows = await db.prepare(`
+    SELECT podcast_id, COUNT(*) AS save_count
+    FROM user_saved_podcasts
+    WHERE podcast_id IN (${placeholders})
+    GROUP BY podcast_id
+  `).bind(...uniqueIds).all<SaveCountRow>()
+
+  const counts = Object.fromEntries(uniqueIds.map((id) => [String(id), 0]))
+  for (const row of rows.results || []) {
+    counts[String(row.podcast_id)] = row.save_count
+  }
+  return counts
 }
 
 export async function listEpisodeProgress(db: D1Database, userId: string, limit = 50): Promise<EpisodeProgressItem[]> {
