@@ -34,8 +34,8 @@ export default function ShadowControls({
     <section className="rounded-2xl border border-white/10 bg-white/[.045] p-4">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="studio-eyebrow">Practice</p>
-          <h2 className="mt-1 font-display text-2xl font-bold tracking-[-.04em] text-slate-50">Repeat the line</h2>
+          <p className="studio-eyebrow">练习</p>
+          <h2 className="mt-1 font-display text-2xl font-bold tracking-[-.04em] text-slate-50">重复当前句</h2>
         </div>
         {activeStart !== undefined && activeEnd !== undefined && (
           <span className="rounded-full border border-ember-300/20 bg-ember-300/10 px-3 py-1 font-mono text-[11px] text-ember-200">
@@ -45,15 +45,15 @@ export default function ShadowControls({
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <button onClick={onPrevCue} className="studio-button-ghost !px-3 !py-3" aria-label="Previous cue">
+        <button onClick={onPrevCue} className="studio-button-ghost !px-3 !py-3" aria-label="上一句">
           ←
-          <span className="ml-1 hidden sm:inline lg:hidden xl:inline">Prev</span>
+          <span className="ml-1 hidden sm:inline lg:hidden xl:inline">上一句</span>
         </button>
-        <button onClick={onRepeatCue} className="studio-button-primary col-span-1 !px-3 !py-3" aria-label="Repeat cue">
-          Repeat
+        <button onClick={onRepeatCue} className="studio-button-primary col-span-1 !px-3 !py-3" aria-label="重复当前句">
+          重复
         </button>
-        <button onClick={onNextCue} className="studio-button-ghost !px-3 !py-3" aria-label="Next cue">
-          <span className="mr-1 hidden sm:inline lg:hidden xl:inline">Next</span>
+        <button onClick={onNextCue} className="studio-button-ghost !px-3 !py-3" aria-label="下一句">
+          <span className="mr-1 hidden sm:inline lg:hidden xl:inline">下一句</span>
           →
         </button>
       </div>
@@ -67,7 +67,7 @@ export default function ShadowControls({
         }`}
         aria-pressed={loopCue}
       >
-        <span>{loopCue ? 'Looping current cue' : 'Loop current cue'}</span>
+        <span>{loopCue ? '正在循环当前句' : '循环当前句'}</span>
         <span className={`h-5 w-9 rounded-full p-0.5 transition ${loopCue ? 'bg-ember-300' : 'bg-slate-700'}`}>
           <span className={`block h-4 w-4 rounded-full bg-white transition ${loopCue ? 'translate-x-4' : ''}`} />
         </span>
@@ -75,7 +75,7 @@ export default function ShadowControls({
 
       <div className="mt-4 rounded-2xl border border-white/10 bg-ink-950/45 p-3">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">Speed</span>
+          <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">速度</span>
           <span className="font-mono text-xs text-aurora-200">{playbackRate.toFixed(2)}×</span>
         </div>
 

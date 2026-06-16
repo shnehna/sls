@@ -12,15 +12,15 @@ export default function Account() {
   const [submitting, setSubmitting] = useState(false)
 
   if (loading) {
-    return <section className="studio-panel p-8 text-slate-300">Loading account…</section>
+    return <section className="studio-panel p-8 text-slate-300">正在加载账号...</section>
   }
 
   if (!user) {
     return (
       <section className="studio-panel p-8 text-center">
-        <p className="studio-eyebrow">Account</p>
-        <h1 className="studio-title mt-3 text-4xl">Log in to manage your profile</h1>
-        <Link to="/auth/login" className="studio-button-primary mt-7">Log in</Link>
+        <p className="studio-eyebrow">账号</p>
+        <h1 className="studio-title mt-3 text-4xl">登录后管理个人资料</h1>
+        <Link to="/auth/login" className="studio-button-primary mt-7">登录</Link>
       </section>
     )
   }
@@ -37,9 +37,9 @@ export default function Account() {
       await changePassword({ currentPassword, newPassword })
       setCurrentPassword('')
       setNewPassword('')
-      setMessage('Password updated')
+      setMessage('密码已更新')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Password update failed')
+      setError(err instanceof Error ? err.message : '密码更新失败')
     } finally {
       setSubmitting(false)
     }
@@ -50,9 +50,9 @@ export default function Account() {
     setError(null)
     try {
       await unlinkIdentity(identityId)
-      setMessage('Identity unlinked')
+      setMessage('登录方式已解绑')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not unlink identity')
+      setError(err instanceof Error ? err.message : '无法解绑登录方式')
     }
   }
 
@@ -67,12 +67,12 @@ export default function Account() {
               <div className="grid h-16 w-16 place-items-center rounded-3xl border border-white/10 bg-white/10 font-display text-2xl font-bold text-white">{user.displayName.slice(0, 1).toUpperCase()}</div>
             )}
             <div>
-              <p className="studio-eyebrow">Profile</p>
+              <p className="studio-eyebrow">个人资料</p>
               <h1 className="font-display text-4xl font-bold text-white">{user.displayName}</h1>
               <p className="mt-1 text-sm text-slate-400">@{user.username}</p>
             </div>
           </div>
-          <Link to="/search?q=conversation" className="studio-button-ghost">Find practice feeds</Link>
+          <Link to="/search?q=conversation" className="studio-button-ghost">寻找练习播客</Link>
         </div>
       </div>
 
@@ -80,10 +80,10 @@ export default function Account() {
         <div className="studio-card p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="studio-eyebrow">Login methods</p>
-              <h2 className="mt-2 font-display text-3xl font-bold text-white">Connected identities</h2>
+              <p className="studio-eyebrow">登录方式</p>
+              <h2 className="mt-2 font-display text-3xl font-bold text-white">已绑定身份</h2>
             </div>
-            {!githubIdentity && <button type="button" onClick={() => void startGithubLogin(true)} className="studio-button-primary">Bind GitHub</button>}
+            {!githubIdentity && <button type="button" onClick={() => void startGithubLogin(true)} className="studio-button-primary">绑定 GitHub</button>}
           </div>
 
           <div className="mt-6 space-y-3">
@@ -93,7 +93,7 @@ export default function Account() {
                   <p className="font-medium capitalize text-slate-100">{identity.provider}</p>
                   <p className="text-sm text-slate-400">{identity.providerUsername || identity.email || identity.providerUserId}</p>
                 </div>
-                <button type="button" onClick={() => void handleUnlink(identity.id)} className="rounded-xl border border-white/10 px-3 py-2 text-sm text-slate-300 transition hover:border-danger/40 hover:text-rose-200">Unlink</button>
+                <button type="button" onClick={() => void handleUnlink(identity.id)} className="rounded-xl border border-white/10 px-3 py-2 text-sm text-slate-300 transition hover:border-danger/40 hover:text-rose-200">解绑</button>
               </div>
             ))}
           </div>
@@ -101,28 +101,28 @@ export default function Account() {
 
         <form onSubmit={handlePasswordChange} className="studio-card space-y-4 p-6">
           <div>
-            <p className="studio-eyebrow">Security</p>
-            <h2 className="mt-2 font-display text-3xl font-bold text-white">Change password</h2>
+            <p className="studio-eyebrow">安全</p>
+            <h2 className="mt-2 font-display text-3xl font-bold text-white">修改密码</h2>
           </div>
-          {!passwordIdentity && <p className="rounded-2xl border border-ember-300/20 bg-ember-300/10 px-4 py-3 text-sm text-amber-100">Password login is not enabled for this account yet.</p>}
-          <input value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} type="password" autoComplete="current-password" placeholder="Current password" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 disabled:opacity-50" />
-          <input value={newPassword} onChange={(event) => setNewPassword(event.target.value)} type="password" autoComplete="new-password" placeholder="New password" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 disabled:opacity-50" />
+          {!passwordIdentity && <p className="rounded-2xl border border-ember-300/20 bg-ember-300/10 px-4 py-3 text-sm text-amber-100">这个账号还没有启用密码登录。</p>}
+          <input value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} type="password" autoComplete="current-password" placeholder="当前密码" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 disabled:opacity-50" />
+          <input value={newPassword} onChange={(event) => setNewPassword(event.target.value)} type="password" autoComplete="new-password" placeholder="新密码" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 disabled:opacity-50" />
           {message && <p className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-emerald-200">{message}</p>}
           {error && <p className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-rose-200">{error}</p>}
-          <button disabled={!passwordIdentity || submitting} className="studio-button-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">{submitting ? 'Updating…' : 'Update password'}</button>
+          <button disabled={!passwordIdentity || submitting} className="studio-button-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">{submitting ? '更新中...' : '更新密码'}</button>
         </form>
       </div>
 
       <div className="studio-card p-6">
-        <p className="studio-eyebrow">Learning preferences</p>
-        <h2 className="mt-2 font-display text-3xl font-bold text-white">Shadowing defaults</h2>
-        <p className="mt-3 text-sm leading-6 text-slate-400">First version preferences are shown here as account-level guidance; persistence can be added when a preferences table is introduced.</p>
+        <p className="studio-eyebrow">学习偏好</p>
+        <h2 className="mt-2 font-display text-3xl font-bold text-white">跟读默认设置</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-400">当前版本先把偏好作为账号级参考展示，后续接入偏好表后可以持久保存。</p>
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           {[
-            ['English level', 'B1 daily conversation'],
-            ['Practice goal', 'Accent shadowing'],
-            ['Session length', '15 minutes'],
-            ['Playback speed', '1× default'],
+            ['英语水平', 'B1 日常对话'],
+            ['练习目标', '口音跟读'],
+            ['单次时长', '15 分钟'],
+            ['播放速度', '默认 1×'],
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
               <p className="font-mono text-[10px] uppercase tracking-[.16em] text-slate-500">{label}</p>

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const levels = ['A2 building basics', 'B1 daily conversation', 'B2 fluent listening', 'C1 native-speed nuance']
-const goals = ['News comprehension', 'Work meetings', 'Travel confidence', 'Accent shadowing']
-const themes = ['Focused daily drills', 'Long-form podcast sessions', 'Transcript-first study']
+const levels = ['A2 打基础', 'B1 日常对话', 'B2 流畅听力', 'C1 接近母语速度']
+const goals = ['听懂新闻', '职场会议', '旅行表达', '口音跟读']
+const themes = ['每日短练', '长播客精听', '先看字幕再跟读']
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -18,22 +18,22 @@ export default function Onboarding() {
   return (
     <section className="mx-auto max-w-5xl space-y-6">
       <div className="studio-panel p-7 sm:p-10">
-        <p className="studio-eyebrow">First run</p>
-        <h1 className="studio-title mt-3 text-5xl leading-none sm:text-6xl">Tune ShadowCast to your practice style</h1>
-        <p className="mt-5 max-w-2xl text-slate-300">These preferences are a lightweight first pass; persistence can be wired once the preferences table is added.</p>
+        <p className="studio-eyebrow">首次设置</p>
+        <h1 className="studio-title mt-3 text-5xl leading-none sm:text-6xl">按你的练习方式调整 ShadowCast</h1>
+        <p className="mt-5 max-w-2xl text-slate-300">这里先做轻量设置；等偏好表接入后，可以把这些选择长期保存。</p>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <ChoiceGroup title="English level" options={levels} value={level} onChange={setLevel} />
-        <ChoiceGroup title="Practice goal" options={goals} value={goal} onChange={setGoal} />
-        <ChoiceGroup title="Session style" options={themes} value={theme} onChange={setTheme} />
+        <ChoiceGroup title="英语水平" options={levels} value={level} onChange={setLevel} />
+        <ChoiceGroup title="练习目标" options={goals} value={goal} onChange={setGoal} />
+        <ChoiceGroup title="练习方式" options={themes} value={theme} onChange={setTheme} />
       </div>
 
       <div className="studio-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-400">Selected: {level} · {goal} · {theme}</p>
+        <p className="text-sm text-slate-400">已选择：{level} · {goal} · {theme}</p>
         <div className="flex gap-3">
-          <button type="button" onClick={() => navigate('/', { replace: true })} className="studio-button-ghost">Skip</button>
-          <button type="button" onClick={finish} className="studio-button-primary">Start practicing</button>
+          <button type="button" onClick={() => navigate('/', { replace: true })} className="studio-button-ghost">跳过</button>
+          <button type="button" onClick={finish} className="studio-button-primary">开始练习</button>
         </div>
       </div>
     </section>

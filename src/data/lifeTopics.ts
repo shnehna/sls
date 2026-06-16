@@ -7,18 +7,18 @@ export interface LifeTopic {
 }
 
 export const lifeTopicCatalog: LifeTopic[] = [
-  { name: 'Food', label: 'Food', description: 'Cooking, restaurants, and everyday taste.' },
-  { name: 'Travel', label: 'Travel', description: 'Places, trips, and cross-cultural stories.' },
-  { name: 'Relationships', label: 'Relationships', description: 'People, communication, and social life.' },
-  { name: 'Health', label: 'Health', description: 'Wellbeing, habits, and practical care.' },
-  { name: 'Fitness', label: 'Fitness', description: 'Movement, routines, and active living.' },
-  { name: 'Technology', label: 'Technology', description: 'Products, trends, and digital work.' },
-  { name: 'Science', label: 'Science', description: 'Ideas, discoveries, and clear explanations.' },
-  { name: 'Stories', label: 'Stories', description: 'Narratives with expressive voices.' },
-  { name: 'History', label: 'History', description: 'People, events, and context-rich listening.' },
-  { name: 'Books', label: 'Books', description: 'Reading, authors, and literary conversation.' },
-  { name: 'Music', label: 'Music', description: 'Artists, scenes, and cultural references.' },
-  { name: 'Film', label: 'Film', description: 'Movies, reviews, and visual culture.' },
+  { name: 'Food', label: '美食', description: '烹饪、餐厅和日常口味。' },
+  { name: 'Travel', label: '旅行', description: '地点、旅途和跨文化故事。' },
+  { name: 'Relationships', label: '关系', description: '人际、沟通和社交生活。' },
+  { name: 'Health', label: '健康', description: '身心健康、习惯和实用护理。' },
+  { name: 'Fitness', label: '健身', description: '运动、训练计划和积极生活。' },
+  { name: 'Technology', label: '科技', description: '产品、趋势和数字工作方式。' },
+  { name: 'Science', label: '科学', description: '观点、发现和清晰解释。' },
+  { name: 'Stories', label: '故事', description: '有表现力的叙事内容。' },
+  { name: 'History', label: '历史', description: '人物、事件和有上下文的听力。' },
+  { name: 'Books', label: '书籍', description: '阅读、作者和文学对谈。' },
+  { name: 'Music', label: '音乐', description: '艺术家、场景和文化背景。' },
+  { name: 'Film', label: '电影', description: '电影、评论和视觉文化。' },
 ]
 
 export function lifeTopicsFromCategories(categories: PodcastCategory[]): LifeTopic[] {

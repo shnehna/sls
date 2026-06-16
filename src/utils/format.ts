@@ -23,10 +23,10 @@ export function timeAgo(unixTimestamp: number): string {
   const now = Math.floor(Date.now() / 1000)
   const diff = now - unixTimestamp
 
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`
+  if (diff < 60) return '刚刚'
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`
+  if (diff < 2592000) return `${Math.floor(diff / 86400)} 天前`
   return new Date(unixTimestamp * 1000).toLocaleDateString()
 }
 
@@ -34,7 +34,7 @@ export function timeAgo(unixTimestamp: number): string {
  * Format a unix timestamp to a pretty date string.
  */
 export function formatDate(unixTimestamp: number): string {
-  return new Date(unixTimestamp * 1000).toLocaleDateString('en-US', {
+  return new Date(unixTimestamp * 1000).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -58,8 +58,8 @@ export function formatDuration(seconds: number | undefined): string {
   if (!seconds) return ''
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
-  if (h > 0) return `${h}h ${m}m`
-  return `${m} min`
+  if (h > 0) return `${h} 小时 ${m} 分钟`
+  return `${m} 分钟`
 }
 
 /**

@@ -47,19 +47,19 @@ export default function Layout() {
             </span>
             <span className="min-w-0">
               <span className="block truncate font-display text-xl font-bold leading-none tracking-[-.04em]">ShadowCast</span>
-              <span className="hidden font-mono text-[10px] uppercase tracking-[.18em] text-slate-400 sm:block">Podcast shadow studio</span>
+              <span className="hidden font-mono text-[10px] uppercase tracking-[.18em] text-slate-400 sm:block">播客跟读工作台</span>
             </span>
           </Link>
 
           <nav className="hidden items-center gap-1 text-sm md:flex">
             <Link to="/" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
-              Home
+              首页
             </Link>
               <Link to="/library" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
-                My Library
+                我的资料库
               </Link>
               <Link to="/search?q=conversation" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
-                Practice feeds
+                练习播客
               </Link>
           </nav>
 
@@ -71,13 +71,13 @@ export default function Layout() {
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span className="ml-2 hidden sm:inline">Search</span>
+              <span className="ml-2 hidden sm:inline">搜索</span>
             </button>
 
             {!loading && !user && (
               <div className="hidden items-center gap-2 sm:flex">
-                <Link to="/auth/login" className="studio-button-ghost !px-3 !py-2">Log in</Link>
-                <Link to="/auth/register" className="studio-button-primary !px-3 !py-2">Sign up</Link>
+                <Link to="/auth/login" className="studio-button-ghost !px-3 !py-2">登录</Link>
+                <Link to="/auth/register" className="studio-button-primary !px-3 !py-2">注册</Link>
               </div>
             )}
 
@@ -99,10 +99,10 @@ export default function Layout() {
 
                 {accountOpen && (
                   <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-ink-900/95 p-2 shadow-panel backdrop-blur-xl">
-                    <Link to="/account" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">Account</Link>
-                    <Link to="/library" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">My Library</Link>
-                    <Link to="/library/progress" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">Continue Practice</Link>
-                    <button type="button" onClick={() => void handleLogout()} className="block w-full rounded-xl px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/10 hover:text-white">Logout</button>
+                    <Link to="/account" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">账号设置</Link>
+                    <Link to="/library" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">我的资料库</Link>
+                    <Link to="/library/progress" className="block rounded-xl px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white">继续练习</Link>
+                    <button type="button" onClick={() => void handleLogout()} className="block w-full rounded-xl px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/10 hover:text-white">退出登录</button>
                   </div>
                 )}
               </div>
@@ -112,8 +112,8 @@ export default function Layout() {
 
         {!loading && !user && (
           <div className="mx-auto flex max-w-7xl gap-2 px-4 pb-3 sm:hidden">
-            <Link to="/auth/login" className="studio-button-ghost flex-1 justify-center !px-3 !py-2">Log in</Link>
-            <Link to="/auth/register" className="studio-button-primary flex-1 justify-center !px-3 !py-2">Sign up</Link>
+            <Link to="/auth/login" className="studio-button-ghost flex-1 justify-center !px-3 !py-2">登录</Link>
+            <Link to="/auth/register" className="studio-button-primary flex-1 justify-center !px-3 !py-2">注册</Link>
           </div>
         )}
 
@@ -125,10 +125,10 @@ export default function Layout() {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search podcasts, topics, accents…"
+                placeholder="搜索播客、主题、口音..."
                 className="min-w-0 flex-1 rounded-xl border border-white/10 bg-ink-950/70 px-3 py-2.5 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
               />
-              <button className="studio-button-primary !px-4 !py-2">Go</button>
+              <button className="studio-button-primary !px-4 !py-2">前往</button>
             </form>
           </div>
         )}
@@ -139,7 +139,7 @@ export default function Layout() {
       </main>
 
       <footer className="border-t border-white/10 bg-ink-950/50 py-5 text-center text-xs text-slate-500">
-        Powered by <a href="https://podcastindex.org" target="_blank" rel="noopener noreferrer" className="font-medium text-aurora-300 hover:text-ember-300">PodcastIndex.org</a>
+        数据来自 <a href="https://podcastindex.org" target="_blank" rel="noopener noreferrer" className="font-medium text-aurora-300 hover:text-ember-300">PodcastIndex.org</a>
       </footer>
 
       {showMiniPlayer && <AudioPlayer />}

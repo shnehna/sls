@@ -86,7 +86,7 @@ export default function Episode() {
       })
       .catch((err) => {
         if (!cancelled && !cached) {
-          setError(err instanceof Error ? err.message : 'Failed to load episode')
+          setError(err instanceof Error ? err.message : '加载剧集失败')
         }
       })
       .finally(() => {
@@ -138,7 +138,7 @@ export default function Episode() {
     }
   }, [activeCue, play, seek])
 
-  if (!episodeId) return <div className="text-sm text-slate-400">Invalid episode id.</div>
+  if (!episodeId) return <div className="text-sm text-slate-400">无效的剧集 ID。</div>
 
   if (loading) {
     return (
@@ -150,7 +150,7 @@ export default function Episode() {
   }
 
   if (error || !episode) {
-    return <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error || 'Episode not found'}</div>
+    return <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error || '没有找到这集节目'}</div>
   }
 
   const hasTranscript = !!(episode.transcripts?.length || episode.transcriptUrl)
@@ -160,7 +160,7 @@ export default function Episode() {
       <div className="grid gap-5 lg:grid-cols-[25rem_minmax(0,1fr)] lg:items-start">
         <aside className="studio-practice-deck space-y-5">
           <Link to={`/podcast/${episode.feedId || ''}`} className="inline-flex items-center font-mono text-[11px] font-semibold uppercase tracking-[.16em] text-slate-400 transition hover:text-ember-200">
-            ← Back to podcast
+            ← 返回播客
           </Link>
 
           <div className="overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/[.04]">
@@ -170,7 +170,7 @@ export default function Episode() {
           </div>
 
           <section>
-            <p className="studio-eyebrow">Listening deck</p>
+            <p className="studio-eyebrow">收听工作台</p>
             <h1 className="mt-2 font-display text-3xl font-bold leading-[.98] tracking-[-.05em] text-slate-50 sm:text-4xl lg:text-3xl xl:text-4xl">
               {episode.title}
             </h1>
@@ -179,7 +179,7 @@ export default function Episode() {
               {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
               {episode.datePublished && <span className="studio-chip">{formatDate(episode.datePublished)}</span>}
               <span className={`studio-chip ${hasTranscript ? '!border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200' : '!border-white/10 !text-slate-500'}`}>
-                {hasTranscript ? 'Transcript ready' : 'No transcript'}
+                {hasTranscript ? '字幕可用' : '暂无字幕'}
               </span>
             </div>
             <p className="mt-4 text-sm leading-7 text-slate-400">{truncate(episode.description || '', 260)}</p>
@@ -191,29 +191,29 @@ export default function Episode() {
           {user && (
             <>
               <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Transcript automation</h3>
+                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">字幕处理</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-400">
                   {transcriptStatus === 'ready'
-                    ? 'Reusable reading cues are available for this episode.'
+                    ? '这一集已经有可重复练习的逐句字幕。'
                     : transcriptStatus === 'processing'
-                      ? `Backend STT is ${transcriptJob?.status.replace(/_/g, ' ') || 'processing'} and will refresh automatically.`
+                      ? `后端语音识别正在${transcriptJob?.status.replace(/_/g, ' ') || '处理中'}，页面会自动刷新。`
                       : hasRemoteTranscript
-                        ? 'A remote transcript is available and can be parsed into the local store.'
-                        : 'No transcript metadata was found. Generate a synced transcript from the episode audio.'}
+                        ? '发现远程字幕，可以解析并保存到本地。'
+                        : '没有发现字幕元数据，可以从音频生成同步字幕。'}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {hasRemoteTranscript && transcriptSource !== 'stored' && (
                     <button onClick={importCurrentTranscript} className="rounded-full bg-ember-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-ember-200">
-                      Import transcript
+                      导入字幕
                     </button>
                   )}
                   {!hasRemoteTranscript && transcriptStatus !== 'processing' && (
                     <button onClick={() => createTranscriptJob()} className="rounded-full bg-aurora-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-aurora-200">
-                      Generate transcript
+                      生成字幕
                     </button>
                   )}
                   <button onClick={refreshTranscript} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/20">
-                    Refresh
+                    刷新
                   </button>
                 </div>
                 {transcriptError && <p className="mt-3 text-xs leading-5 text-rose-200">{transcriptError}</p>}
@@ -232,19 +232,19 @@ export default function Episode() {
 
               {activeCue && (
                 <div className="rounded-2xl border border-aurora-300/15 bg-aurora-300/10 p-4">
-                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-200">Current cue</p>
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-200">当前句子</p>
                   <p className="mt-2 font-mono text-sm text-slate-100">{formatTime(activeCue.startTime)} — {formatTime(activeCue.endTime)}</p>
                   <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{activeCue.text}</p>
                 </div>
               )}
 
               <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">Keyboard</h3>
+                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">快捷键</h3>
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <kbd className="studio-kbd">← previous</kbd>
-                  <kbd className="studio-kbd">→ next</kbd>
-                  <kbd className="studio-kbd">R repeat</kbd>
-                  <kbd className="studio-kbd">Space play</kbd>
+                  <kbd className="studio-kbd">← 上一句</kbd>
+                  <kbd className="studio-kbd">→ 下一句</kbd>
+                  <kbd className="studio-kbd">R 重复</kbd>
+                  <kbd className="studio-kbd">Space 播放</kbd>
                 </div>
               </section>
             </>

@@ -20,7 +20,7 @@ export default function SavedPodcastButton({ podcast, compact = false, onSavedCh
     : 'studio-button-ghost'
 
   if (!user) {
-    return <Link to="/auth/login" className={className}>Log in to save</Link>
+    return <Link to="/auth/login" className={className}>登录后收藏</Link>
   }
 
   const handleClick = async () => {
@@ -52,7 +52,7 @@ export default function SavedPodcastButton({ podcast, compact = false, onSavedCh
       disabled={working}
       className={saved ? `${className} !border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200` : className}
     >
-      {working ? 'Saving...' : saved ? 'Saved' : 'Save podcast'}
+      {working ? '保存中...' : saved ? '已收藏' : '收藏播客'}
     </button>
   )
 }

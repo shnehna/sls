@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       return applyState(await authApi.getCurrentUser())
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load user'
+      const message = err instanceof Error ? err.message : '加载用户失败'
       setError(message)
       throw err
     } finally {
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       return applyState(await authApi.login(input))
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed'
+      const message = err instanceof Error ? err.message : '登录失败'
       setError(message)
       throw err
     }
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       return applyState(await authApi.register(input))
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Registration failed'
+      const message = err instanceof Error ? err.message : '注册失败'
       setError(message)
       throw err
     }

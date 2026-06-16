@@ -95,7 +95,7 @@ export default function Search() {
       })
       .catch((err) => {
         if (!cancelled && !cached) {
-          setError(err instanceof Error ? err.message : 'Search failed')
+          setError(err instanceof Error ? err.message : '搜索失败')
         }
       })
       .finally(() => {
@@ -115,19 +115,19 @@ export default function Search() {
   return (
     <div className="space-y-7 pb-28">
       <section className="studio-panel p-6 sm:p-8">
-        <p className="studio-eyebrow">Search the archive</p>
-        <h1 className="studio-title mt-2 text-5xl leading-none sm:text-6xl">Find your next drill</h1>
+        <p className="studio-eyebrow">搜索播客库</p>
+        <h1 className="studio-title mt-2 text-5xl leading-none sm:text-6xl">找到下一段练习材料</h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-          Search by topic, show name, accent, or learning goal. Pick an episode, then work line-by-line in the studio deck.
+          可以按主题、节目名、口音或练习目标搜索。选择一集后，在工作台里逐句跟读。
         </p>
         <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-ink-950/45 p-2 sm:flex-row">
           <input
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Try: pronunciation, science, business, news…"
+            placeholder="试试：pronunciation、science、business、news..."
             className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[.06] px-4 py-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
           />
-          <button className="studio-button-primary">Search</button>
+          <button className="studio-button-primary">搜索</button>
         </form>
       </section>
 
@@ -140,7 +140,7 @@ export default function Search() {
       )}
 
       {loading && results.length > 0 && (
-        <p className="text-sm text-slate-400">Refreshing cached results…</p>
+        <p className="text-sm text-slate-400">正在刷新缓存结果...</p>
       )}
 
       {error && <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error}</div>}
@@ -148,7 +148,7 @@ export default function Search() {
       {!error && query && results.length > 0 && (
         <div className="space-y-4">
           <p className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">
-            {results.length} results for <span className="text-ember-200">“{query}”</span>
+            “{query}” 的 {results.length} 个结果
           </p>
           <div className="grid gap-4 md:grid-cols-2">
             {results.map((podcast) => (
@@ -170,7 +170,7 @@ export default function Search() {
 
       {!loading && !error && query && results.length === 0 && (
         <p className="rounded-2xl border border-white/10 bg-white/[.06] p-4 text-sm text-slate-300">
-          No results for <span className="font-medium text-ember-200">“{query}”</span>
+          没有找到 <span className="font-medium text-ember-200">“{query}”</span> 的结果
         </p>
       )}
     </div>

@@ -18,9 +18,9 @@ export default function ProgressCard({ progress }: Props) {
           ) : '♪'}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="studio-eyebrow">Continue listening</p>
+          <p className="studio-eyebrow">继续收听</p>
           <h3 className="mt-2 line-clamp-2 font-display text-xl font-bold leading-tight tracking-[-.04em] text-slate-50 group-hover:text-ember-100">
-            {progress.episodeTitle || `Episode ${progress.episodeId}`}
+            {progress.episodeTitle || `剧集 ${progress.episodeId}`}
           </h3>
           {progress.podcastTitle && <p className="mt-1 truncate text-sm text-slate-400">{progress.podcastTitle}</p>}
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">

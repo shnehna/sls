@@ -38,8 +38,8 @@ export default function PodcastCard({ podcast, saveCount, onSaveCountChange }: P
         <Link to={`/podcast/${podcast.id}`}>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {podcast.language && <span className="studio-chip uppercase">{podcast.language}</span>}
-            {podcast.episodeCount !== undefined && <span className="studio-chip">{podcast.episodeCount} eps</span>}
-            <span className="studio-chip">{visibleSaveCount} {visibleSaveCount === 1 ? 'save' : 'saves'}</span>
+            {podcast.episodeCount !== undefined && <span className="studio-chip">{podcast.episodeCount} 集</span>}
+            <span className="studio-chip">{visibleSaveCount} 人收藏</span>
           </div>
           <h3 className="truncate text-base font-semibold text-slate-50 transition hover:text-ember-100">
             {podcast.title}

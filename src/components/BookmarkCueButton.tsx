@@ -56,7 +56,7 @@ export default function BookmarkCueButton({
       }
       await refreshLibrary()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Bookmark update failed')
+      setError(err instanceof Error ? err.message : '书签更新失败')
     } finally {
       setWorking(false)
     }
@@ -70,7 +70,7 @@ export default function BookmarkCueButton({
       className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[.14em] transition ${saved ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-700' : 'border-paper-700/10 bg-white/35 text-paper-700/65 hover:border-amber-500/30 hover:text-paper-900'}`}
       title={error || ''}
     >
-      {working ? 'Saving…' : saved ? 'Bookmarked' : 'Bookmark'}
+      {working ? '保存中...' : saved ? '已收藏' : '收藏'}
     </button>
   )
 }

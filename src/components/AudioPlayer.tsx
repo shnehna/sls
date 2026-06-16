@@ -112,7 +112,7 @@ export default function AudioPlayer({ compact = false }: Props) {
       <div className={compact ? 'space-y-5' : 'flex items-center gap-3 sm:gap-4'}>
         {!compact && <PlayerArtwork src={artwork} title={episode.title} />}
 
-        <button onClick={togglePlay} className={playButtonClass} aria-label={state.isPlaying ? 'Pause' : 'Play'}>
+        <button onClick={togglePlay} className={playButtonClass} aria-label={state.isPlaying ? '暂停' : '播放'}>
           {state.isPlaying ? (
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h3v12H5V4Zm7 0h3v12h-3V4Z" /></svg>
           ) : (
@@ -124,7 +124,7 @@ export default function AudioPlayer({ compact = false }: Props) {
           <div className={compact ? 'flex items-start gap-4' : 'flex items-center justify-between gap-3'}>
             {compact && <PlayerArtwork src={artwork} title={episode.title} compact />}
             <div className="min-w-0 flex-1">
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-300">Now playing</p>
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-300">正在播放</p>
               <h3 className={`${compact ? 'mt-2 line-clamp-3 font-display text-2xl font-bold leading-tight tracking-[-.04em]' : 'mt-1 truncate text-sm font-semibold sm:text-base'} text-slate-50`}>
                 {episode.title}
               </h3>
@@ -141,7 +141,7 @@ export default function AudioPlayer({ compact = false }: Props) {
               className="studio-scrubber"
               onClick={seekFromPointer}
               role="slider"
-              aria-label="Seek"
+              aria-label="调整播放位置"
               aria-valuemin={0}
               aria-valuemax={duration}
               aria-valuenow={state.currentTime}
@@ -152,13 +152,13 @@ export default function AudioPlayer({ compact = false }: Props) {
         </div>
 
         <div className={compact ? 'grid grid-cols-[1fr_auto] items-center gap-3' : 'hidden items-center gap-3 sm:flex'}>
-          <label className="sr-only" htmlFor={compact ? 'episode-playback-rate' : 'playback-rate'}>Playback speed</label>
+          <label className="sr-only" htmlFor={compact ? 'episode-playback-rate' : 'playback-rate'}>播放速度</label>
           <select
             id={compact ? 'episode-playback-rate' : 'playback-rate'}
             value={state.playbackRate}
             onChange={(event) => setRate(Number(event.target.value))}
             className="rounded-xl border border-white/10 bg-ink-950/80 px-3 py-2 font-mono text-xs text-slate-100 outline-none focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
-            aria-label="Playback speed"
+            aria-label="播放速度"
           >
             {[0.65, 0.8, 1, 1.15, 1.35, 1.5, 2].map((rate) => <option key={rate} value={rate}>{rate}×</option>)}
           </select>
@@ -171,7 +171,7 @@ export default function AudioPlayer({ compact = false }: Props) {
             value={state.volume}
             onChange={(event) => setVolume(Number(event.target.value))}
             className={`${compact ? 'w-full' : 'w-20'} accent-ember-300`}
-            aria-label="Volume"
+            aria-label="音量"
           />
         </div>
       </div>

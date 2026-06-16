@@ -31,7 +31,7 @@ export function useEpisodes(feedId: number | null) {
       setError(null)
     } catch (err) {
       if (!cached) {
-        setError(err instanceof Error ? err.message : 'Failed to load episodes')
+        setError(err instanceof Error ? err.message : '加载剧集失败')
       }
     } finally {
       setLoading(false)

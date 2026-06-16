@@ -29,7 +29,7 @@ export function usePodcast(feedId: number | null) {
       })
       .catch((err) => {
         if (!cancelled && !cached) {
-          setError(err instanceof Error ? err.message : 'Failed to load podcast')
+          setError(err instanceof Error ? err.message : '加载播客失败')
         }
       })
       .finally(() => {

@@ -58,7 +58,7 @@ export default function Transcript({
       <section className="studio-transcript-surface p-5">
         <div className="flex items-center gap-3 text-sm text-paper-700">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-ember-400 border-t-transparent" />
-          Loading transcript…
+          正在加载字幕...
         </div>
         <div className="mt-5 space-y-3">
           {Array.from({ length: 7 }).map((_, index) => (
@@ -73,14 +73,14 @@ export default function Transcript({
     return (
       <section className="studio-transcript-surface p-8 text-center">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-aurora-300/30 bg-aurora-300/10 text-2xl text-aurora-300">↻</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">Generating synced transcript</h3>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">正在生成同步字幕</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
-          {job ? `Backend STT provider ${job.provider} is ${job.status.replace(/_/g, ' ')}. This view refreshes automatically.` : 'Backend STT is generating cues from the episode audio.'}
+          {job ? `后端语音识别服务 ${job.provider} 正在${job.status.replace(/_/g, ' ')}。页面会自动刷新。` : '后端语音识别正在从音频生成逐句字幕。'}
         </p>
         {job && <p className="mt-3 font-mono text-[11px] uppercase tracking-[.12em] text-paper-700/50">Job {job.id}</p>}
         {onRefresh && (
           <button onClick={onRefresh} className="mt-5 rounded-full border border-paper-700/15 bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
-            Refresh status
+            刷新状态
           </button>
         )}
       </section>
@@ -91,13 +91,13 @@ export default function Transcript({
     return (
       <section className="studio-transcript-surface p-8 text-center">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-danger/30 bg-danger/10 text-2xl text-danger">!</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">Transcript unavailable</h3>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">字幕暂不可用</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
-          {error || 'The transcript could not be loaded or generated.'}
+          {error || '字幕无法加载或生成。'}
         </p>
         <div className="mt-5 flex justify-center gap-3">
-          {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">Retry</button>}
-          {hasRemoteTranscript && onImportTranscript && <button onClick={onImportTranscript} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50">Import remote transcript</button>}
+          {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">重试</button>}
+          {hasRemoteTranscript && onImportTranscript && <button onClick={onImportTranscript} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50">导入远程字幕</button>}
         </div>
       </section>
     )
@@ -107,24 +107,24 @@ export default function Transcript({
     return (
       <section className="studio-transcript-surface p-8 text-center">
         <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-paper-300/25 bg-white/40 text-2xl text-paper-300">♪</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">No synced transcript found</h3>
+        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">没有找到同步字幕</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
           {hasRemoteTranscript
-            ? 'This episode has remote transcript metadata. Import it to parse and store reusable reading cues.'
-            : 'This episode can still be played. Generate a synced transcript from the episode audio.'}
+            ? '这一集有远程字幕信息。导入后可以解析并保存为可重复练习的句子。'
+            : '这一集仍然可以播放。你也可以从音频生成同步字幕。'}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           {hasRemoteTranscript && onImportTranscript && (
             <button onClick={onImportTranscript} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
-              Import transcript
+              导入字幕
             </button>
           )}
           {!hasRemoteTranscript && onCreateJob && (
             <button onClick={onCreateJob} className="rounded-full bg-paper-900 px-4 py-2 text-sm font-semibold text-paper-50 transition hover:bg-paper-800">
-              Generate transcript
+              生成字幕
             </button>
           )}
-          {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">Refresh</button>}
+          {onRefresh && <button onClick={onRefresh} className="rounded-full border border-paper-700/15 px-4 py-2 text-sm font-semibold text-paper-800">刷新</button>}
         </div>
       </section>
     )
@@ -135,14 +135,14 @@ export default function Transcript({
       <header className="sticky top-0 z-10 border-b border-paper-700/10 bg-paper-50/82 px-5 py-4 backdrop-blur-xl sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[.18em] text-paper-300">Transcript</p>
-            <h2 className="mt-1 font-display text-3xl font-bold tracking-[-.04em] text-paper-900">Follow along</h2>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[.18em] text-paper-300">字幕</p>
+            <h2 className="mt-1 font-display text-3xl font-bold tracking-[-.04em] text-paper-900">跟着字幕练习</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {source === 'stored' && <span className="speaker-badge">stored</span>}
-            {source === 'remote-fallback' && <span className="speaker-badge">remote preview</span>}
+            {source === 'stored' && <span className="speaker-badge">已保存</span>}
+            {source === 'remote-fallback' && <span className="speaker-badge">远程预览</span>}
             {speakers.slice(0, 4).map((speaker) => <SpeakerLabel key={speaker} name={speaker} />)}
-            <span className="speaker-badge">{cues.length} cues</span>
+            <span className="speaker-badge">{cues.length} 句</span>
           </div>
         </div>
       </header>

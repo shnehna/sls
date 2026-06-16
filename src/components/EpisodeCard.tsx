@@ -18,7 +18,7 @@ export default function EpisodeCard({ episode }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {episode.episode && <span className="studio-chip">#{episode.episode}</span>}
-            {hasTranscript && <span className="studio-chip !border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200">Transcript available</span>}
+            {hasTranscript && <span className="studio-chip !border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200">有字幕</span>}
             {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
           </div>
 
@@ -36,7 +36,7 @@ export default function EpisodeCard({ episode }: Props) {
             {persons.length > 0 && <span>{persons.map((p) => p.name).join(' · ')}</span>}
           </div>
         </div>
-        <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/[.05] px-3 py-1.5 text-sm font-medium text-aurora-200 transition group-hover:border-ember-300/30 group-hover:text-ember-100 sm:block">Open →</span>
+        <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/[.05] px-3 py-1.5 text-sm font-medium text-aurora-200 transition group-hover:border-ember-300/30 group-hover:text-ember-100 sm:block">打开 →</span>
       </div>
     </Link>
   )

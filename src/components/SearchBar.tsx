@@ -12,7 +12,7 @@ export default function SearchBar({
   autoFocus = false,
   onSubmit,
   compact = false,
-  placeholder = 'Search English podcasts...',
+  placeholder = '搜索英文播客...',
 }: Props) {
   const [value, setValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)

@@ -39,7 +39,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       setLibrary(nextLibrary)
       setSavedPodcasts(nextLibrary.savedPodcasts)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load library')
+      setError(err instanceof Error ? err.message : '加载资料库失败')
     } finally {
       setLoading(false)
     }

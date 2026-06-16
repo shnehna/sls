@@ -19,7 +19,7 @@ export function useSearch() {
       const data = await searchByTerm(term)
       setResults(data.feeds || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search failed')
+        setError(err instanceof Error ? err.message : '搜索失败')
       setResults([])
     } finally {
       setLoading(false)

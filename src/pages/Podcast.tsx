@@ -31,12 +31,12 @@ export default function Podcast() {
   const { podcast, loading: loadingPodcast, error: podcastError } = usePodcast(feedId)
   const { episodes, loading: loadingEpisodes, error: episodesError } = useEpisodes(feedId)
 
-  if (!feedId) return <div className="text-sm text-slate-400">Invalid podcast id.</div>
+  if (!feedId) return <div className="text-sm text-slate-400">无效的播客 ID。</div>
 
   return (
     <div className="space-y-7 pb-28">
       <Link to="/" className="inline-flex items-center font-mono text-[11px] font-semibold uppercase tracking-[.16em] text-slate-400 transition hover:text-ember-200">
-        ← Back to home
+        ← 返回首页
       </Link>
 
       {loadingPodcast ? (
@@ -50,13 +50,13 @@ export default function Podcast() {
               <PodcastArtwork src={podcast.artwork || podcast.image} title={podcast.title} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="studio-eyebrow">Podcast archive</p>
+              <p className="studio-eyebrow">播客档案</p>
               <h1 className="studio-title mt-2 text-4xl leading-none sm:text-6xl">{podcast.title}</h1>
-              {podcast.author && <p className="mt-3 text-sm text-slate-400">by {podcast.author}</p>}
+              {podcast.author && <p className="mt-3 text-sm text-slate-400">作者：{podcast.author}</p>}
               <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300">{truncate(podcast.description || '', 420)}</p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 {podcast.language && <span className="studio-chip uppercase">{podcast.language}</span>}
-                {podcast.episodeCount !== undefined && <span className="studio-chip">{podcast.episodeCount} episodes</span>}
+                {podcast.episodeCount !== undefined && <span className="studio-chip">{podcast.episodeCount} 集</span>}
                 {podcast.categories && Object.values(podcast.categories).slice(0, 4).map((cat) => (
                   <span key={cat} className="studio-chip">{cat}</span>
                 ))}
@@ -70,10 +70,10 @@ export default function Podcast() {
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="studio-eyebrow">Episodes</p>
-            <h2 className="studio-title mt-1 text-3xl">Choose an episode</h2>
+            <p className="studio-eyebrow">剧集</p>
+            <h2 className="studio-title mt-1 text-3xl">选择一集开始练习</h2>
           </div>
-          <p className="hidden max-w-xs text-right text-sm leading-6 text-slate-400 sm:block">Episodes with transcripts work best for shadow reading.</p>
+          <p className="hidden max-w-xs text-right text-sm leading-6 text-slate-400 sm:block">有字幕的剧集最适合逐句跟读。</p>
         </div>
 
         {loadingEpisodes ? (

@@ -194,7 +194,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setCues([])
         setTranscriptStatus('error')
         setTranscriptSource('none')
-        setTranscriptError(stored.errorMessage || 'Transcript processing failed')
+        setTranscriptError(stored.errorMessage || '字幕处理失败')
         setTranscriptJob(stored.job || null)
         setTranscriptId(null)
         return
@@ -237,7 +237,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setCues([])
         setTranscriptStatus('error')
         setTranscriptSource('none')
-        setTranscriptError(err instanceof Error ? err.message : 'Failed to load transcript')
+        setTranscriptError(err instanceof Error ? err.message : '加载字幕失败')
       })
       .finally(() => {
         if (!cancelled) setLoadingTranscript(false)
@@ -280,7 +280,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const refreshTranscript = useCallback(async () => {
     if (!state.episode) return
     if (!user) {
-      setTranscriptError('Log in to refresh transcripts')
+      setTranscriptError('登录后才能刷新字幕')
       return
     }
     setLoadingTranscript(true)
@@ -306,12 +306,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const importCurrentTranscript = useCallback(async () => {
     if (!state.episode) return
     if (!user) {
-      setTranscriptError('Log in to import transcripts')
+      setTranscriptError('登录后才能导入字幕')
       return
     }
     const remote = getRemoteTranscript(state.episode)
     if (!remote) {
-      setTranscriptError('No remote transcript is available to import')
+      setTranscriptError('没有可导入的远程字幕')
       setTranscriptStatus('error')
       return
     }
@@ -329,7 +329,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       await loadTranscriptForEpisode(state.episode, { forceRefresh: true })
     } catch (err) {
       setTranscriptStatus('error')
-      setTranscriptError(err instanceof Error ? err.message : 'Failed to import transcript')
+      setTranscriptError(err instanceof Error ? err.message : '导入字幕失败')
     } finally {
       setLoadingTranscript(false)
     }
@@ -338,7 +338,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const createTranscriptJob = useCallback(async (provider = 'auto') => {
     if (!state.episode) return
     if (!user) {
-      setTranscriptError('Log in to generate transcripts')
+      setTranscriptError('登录后才能生成字幕')
       return
     }
     setLoadingTranscript(true)
@@ -357,7 +357,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setTranscriptId(null)
     } catch (err) {
       setTranscriptStatus('error')
-      setTranscriptError(err instanceof Error ? err.message : 'Failed to create transcription job')
+      setTranscriptError(err instanceof Error ? err.message : '创建转写任务失败')
     } finally {
       setLoadingTranscript(false)
     }

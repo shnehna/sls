@@ -17,7 +17,7 @@ export default function AuthCallback() {
         if (!cancelled) navigate(state.isFirstUse ? '/onboarding' : '/', { replace: true })
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not complete GitHub login')
+        if (!cancelled) setError(err instanceof Error ? err.message : '无法完成 GitHub 登录')
       })
 
     return () => {
@@ -31,17 +31,17 @@ export default function AuthCallback() {
         <p className="studio-eyebrow">GitHub OAuth</p>
         {error ? (
           <>
-            <h1 className="studio-title mt-3 text-4xl">Login needs another pass</h1>
+            <h1 className="studio-title mt-3 text-4xl">登录需要重试</h1>
             <p className="mt-4 text-slate-300">{friendlyError(error)}</p>
             <div className="mt-7 flex justify-center gap-3">
-              <Link to="/auth/login" className="studio-button-primary">Back to login</Link>
-              <Link to="/" className="studio-button-ghost">Go home</Link>
+              <Link to="/auth/login" className="studio-button-primary">返回登录</Link>
+              <Link to="/" className="studio-button-ghost">回到首页</Link>
             </div>
           </>
         ) : (
           <>
             <h1 className="studio-title mt-3 text-4xl">正在完成登录…</h1>
-            <p className="mt-4 text-slate-300">We are refreshing your ShadowCast session and preparing your practice room.</p>
+            <p className="mt-4 text-slate-300">正在刷新你的 ShadowCast 会话，并准备练习空间。</p>
           </>
         )}
       </div>
@@ -51,10 +51,10 @@ export default function AuthCallback() {
 
 function friendlyError(error: string): string {
   const messages: Record<string, string> = {
-    github_already_linked: 'That GitHub account is already linked to another ShadowCast user.',
-    invalid_state: 'The GitHub login state expired or did not match. Please try again.',
-    link_session_expired: 'Your session expired before GitHub returned. Log in and try linking again.',
-    missing_github_config: 'GitHub OAuth is not configured for this environment yet.',
+    github_already_linked: '这个 GitHub 账号已经绑定到另一个 ShadowCast 用户。',
+    invalid_state: 'GitHub 登录状态已过期或不匹配，请重试。',
+    link_session_expired: 'GitHub 返回前会话已过期，请重新登录后再绑定。',
+    missing_github_config: '当前环境还没有配置 GitHub OAuth。',
   }
   return messages[error] || error.replace(/_/g, ' ')
 }

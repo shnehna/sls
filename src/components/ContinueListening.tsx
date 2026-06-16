@@ -14,7 +14,7 @@ export default function ContinueListening({ items, loading }: Props) {
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/[.05] p-5 text-sm leading-6 text-slate-400">
-        Start an episode to build your continue listening queue.
+        开始收听一集后，这里会显示你的继续练习列表。
       </div>
     )
   }
