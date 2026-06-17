@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useRef, useEffect, type FormEvent } from 'react'
 import AudioPlayer from './AudioPlayer'
 import { useAuth } from '../context/AuthContext'
@@ -38,6 +38,13 @@ export default function Layout() {
     navigate('/')
   }
 
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `rounded-xl px-3 py-2 font-medium transition ${
+      isActive
+        ? 'bg-ember-300/14 text-amber-100 ring-1 ring-ember-300/25'
+        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+    }`
+
   return (
     <div className="studio-shell">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-950/76 backdrop-blur-2xl">
@@ -54,15 +61,15 @@ export default function Layout() {
           </Link>
 
           <nav className="hidden items-center gap-1 text-sm md:flex">
-            <Link to="/" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+            <NavLink to="/" end className={navLinkClass}>
               首页
-            </Link>
-              <Link to="/library" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+            </NavLink>
+              <NavLink to="/library" className={navLinkClass}>
                 我的资料库
-              </Link>
-              <Link to="/search?q=conversation" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+              </NavLink>
+              <NavLink to="/search?q=conversation" className={navLinkClass}>
                 练习播客
-              </Link>
+              </NavLink>
           </nav>
 
           <div className="flex items-center gap-2">

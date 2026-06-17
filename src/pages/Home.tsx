@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
 import { getCachedCategoryList, getCachedSearchByTerm, getCachedTrendingPodcasts, getCategoryList, getTrendingPodcasts, searchByTerm } from '../api/client'
 import type { PodcastFeed } from '../api/types'
 import ContinueListening from '../components/ContinueListening'
@@ -10,26 +13,12 @@ import { learningCategories, rankPodcastsForCategory, type LearningCategory } fr
 import { lifeTopicCatalog, lifeTopicsFromCategories, type LifeTopic } from '../data/lifeTopics'
 import { usePodcastSaveCounts } from '../hooks/usePodcastSaveCounts'
 
+gsap.registerPlugin(ScrollTrigger, useGSAP)
+
 type CategoryResults = Record<string, PodcastFeed[]>
 
-const sceneAccents = [
-  'border-l-ember-300/80 bg-ember-300/10 text-ember-100',
-  'border-l-sky-300/80 bg-sky-300/10 text-sky-100',
-  'border-l-emerald-300/80 bg-emerald-300/10 text-emerald-100',
-  'border-l-rose-300/80 bg-rose-300/10 text-rose-100',
-  'border-l-violet-300/80 bg-violet-300/10 text-violet-100',
-  'border-l-cyan-300/80 bg-cyan-300/10 text-cyan-100',
-  'border-l-lime-300/80 bg-lime-300/10 text-lime-100',
-]
-
-const topicAccents = [
-  'hover:border-ember-300/40 hover:bg-ember-300/10 hover:text-ember-100',
-  'hover:border-sky-300/40 hover:bg-sky-300/10 hover:text-sky-100',
-  'hover:border-emerald-300/40 hover:bg-emerald-300/10 hover:text-emerald-100',
-  'hover:border-rose-300/40 hover:bg-rose-300/10 hover:text-rose-100',
-  'hover:border-violet-300/40 hover:bg-violet-300/10 hover:text-violet-100',
-  'hover:border-cyan-300/40 hover:bg-cyan-300/10 hover:text-cyan-100',
-]
+const topicAccent = 'hover:border-ember-300/45 hover:bg-ember-300/10 hover:text-amber-100'
+const scrubLine = '先听懂真实语速，再跟上表达节奏，最后把句子变成自己的口语素材。'
 
 function mergePodcastFeeds(...groups: PodcastFeed[][]): PodcastFeed[] {
   const seen = new Set<number>()
@@ -75,7 +64,7 @@ async function loadCategoryResults(category: LearningCategory, cached: PodcastFe
     const search = await searchByTerm(category.query, 16, cachedSearch ? { forceRefresh: true } : undefined)
     candidates = rankPodcastsForCategory(mergePodcastFeeds(candidates, search.feeds || [], cached), category)
   } catch {
-    // Trending candidates are still useful when focused search is temporarily unavailable.
+    candidates = rankPodcastsForCategory(mergePodcastFeeds(candidates, cached), category)
   }
 
   return candidates.slice(0, 4)
@@ -84,17 +73,56 @@ async function loadCategoryResults(category: LearningCategory, cached: PodcastFe
 export default function Home() {
   const { user } = useAuth()
   const { library, loading: libraryLoading } = useLibrary()
+  const rootRef = useRef<HTMLDivElement>(null)
   const [categoryResults, setCategoryResults] = useState<CategoryResults>({})
   const [lifeTopics, setLifeTopics] = useState<LifeTopic[]>(lifeTopicCatalog)
-  const [activeCategoryId, setActiveCategoryId] = useState(learningCategories[0]?.id || '')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const podcastIds = Object.values(categoryResults).flat().map((podcast) => podcast.id)
   const { counts: saveCounts, setPodcastSaveCount } = usePodcastSaveCounts(podcastIds)
-  const activeCategory = useMemo<LearningCategory>(
-    () => learningCategories.find((category) => category.id === activeCategoryId) || learningCategories[0]!,
-    [activeCategoryId]
-  )
+  const heroPodcasts = useMemo(() => mergePodcastFeeds(...Object.values(categoryResults)).slice(0, 3), [categoryResults])
+  const firstCategory = learningCategories[0]!
+
+  useGSAP(() => {
+    gsap.from('.home-reveal', {
+      y: 22,
+      opacity: 0,
+      duration: 0.75,
+      ease: 'power3.out',
+      stagger: 0.08,
+    })
+
+    gsap.utils.toArray<HTMLElement>('.home-image-motion').forEach((element) => {
+      gsap.fromTo(
+        element,
+        { scale: 0.9, opacity: 0.58 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: element,
+            start: 'top 88%',
+            end: 'bottom 42%',
+            scrub: true,
+          },
+        }
+      )
+    })
+
+    gsap.to('.home-scrub-word', {
+      opacity: 1,
+      y: 0,
+      stagger: 0.08,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.home-scrub-copy',
+        start: 'top 82%',
+        end: 'bottom 48%',
+        scrub: true,
+      },
+    })
+  }, { scope: rootRef, dependencies: [loading], revertOnUpdate: true })
 
   useEffect(() => {
     let cancelled = false
@@ -158,155 +186,125 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="space-y-12 pb-28">
-      <section className="studio-panel p-6 sm:p-10">
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_.85fr] lg:items-center">
-          <div className="max-w-3xl">
-            <p className="studio-eyebrow">英语练习场景</p>
-            <h1 className="studio-title mt-4 text-5xl leading-[.93] sm:text-7xl">
-              {user ? `欢迎回来，${user.displayName}` : '先选一个场景，再开始跟读。'}
+    <div ref={rootRef} className="w-full max-w-full overflow-x-hidden pb-28">
+      <section className="relative min-h-[calc(100dvh-5rem)] overflow-hidden rounded-[2rem] border border-white/10 bg-ink-950/45 px-5 py-14 shadow-panel sm:px-8 lg:px-12 lg:py-20">
+        <div className="absolute inset-0 opacity-70">
+          <img
+            src="https://picsum.photos/seed/podcast-listening-room/1920/1080"
+            alt=""
+            className="h-full w-full object-cover opacity-24 mix-blend-luminosity contrast-125"
+            decoding="async"
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,197,109,.2),transparent_34rem),linear-gradient(110deg,rgba(7,11,18,.96),rgba(7,11,18,.72)_52%,rgba(7,11,18,.94))]" />
+        </div>
+
+        <div className="relative grid min-h-[34rem] gap-10 lg:grid-cols-[1fr_.82fr] lg:items-center">
+          <div className="home-reveal max-w-6xl">
+            <p className="studio-eyebrow">ShadowCast 英文播客跟读</p>
+            <h1 className="studio-title mt-5 max-w-6xl text-[clamp(3rem,6vw,5.9rem)] leading-[.92] tracking-[-.045em]">
+              把英文播客
+              <span
+                className="mx-2 inline-block h-10 w-24 rounded-full bg-cover bg-center align-middle shadow-ember sm:h-14 sm:w-36"
+                style={{ backgroundImage: 'url(https://picsum.photos/seed/studio-waveform/420/180)' }}
+                aria-hidden="true"
+              />
+              变成跟读工作台
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-              {user
-                ? '继续你的英语跟读练习，或者选择今天最想提升的表达场景。'
-                : '按真实使用场景发现英文播客：日常对话、职场、故事、新闻、发音和轻松泛听。'}
+              按真实场景发现英文节目，边听边看字幕，把句子拆成可以反复练的口语材料。
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/search?q=conversation" className="studio-button-primary">从日常对话开始</Link>
-              <Link to={user ? '/library' : '/search?q=pronunciation'} className="studio-button-ghost">{user ? '打开资料库' : '练习发音'}</Link>
+              <Link to="/search?q=conversation" className="studio-button-primary">开始找播客</Link>
+              <Link to={user ? '/library' : '/search?q=food'} className="studio-button-ghost">{user ? '回到资料库' : '浏览生活主题'}</Link>
             </div>
           </div>
 
-          <div className="relative min-h-72 overflow-hidden rounded-deck border border-white/10 bg-ink-950/45 p-5 shadow-glow">
-            <div className="absolute inset-0 waveform-strip opacity-40" />
-            <div className="relative flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[.18em] text-slate-400">
-                <span>{user ? '你的工作台' : '练习控制台'}</span>
-                <span className="text-ember-300">按场景练习</span>
-              </div>
-              <div className="mt-14 space-y-3">
-                {(user ? ['继续练习', '收藏播客', '最近书签'] : ['日常表达', '职场英语', '故事和观点']).map((label, index) => (
-                  <div key={label} className="rounded-2xl border border-white/10 bg-white/[.07] p-4" style={{ transform: `translateX(${index * 18}px)` }}>
-                    <span className="font-mono text-[11px] text-aurora-200">0{index + 1}</span>
-                    <p className="mt-1 font-display text-2xl font-bold tracking-[-.04em] text-slate-50">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <HeroProductPreview podcasts={heroPodcasts} />
         </div>
       </section>
 
-      {error && <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error}</div>}
+      {error && <div className="mt-8 rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-rose-100">{error}</div>}
 
-      <section className="space-y-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="py-24 md:py-32">
+        <div className="home-reveal mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
+            <p className="studio-eyebrow">学习路径</p>
+            <h2 className="studio-title mt-2 max-w-3xl text-4xl leading-tight sm:text-5xl">先选场景，再进入英文内容</h2>
+          </div>
+          <p className="max-w-xl text-sm leading-7 text-slate-400">
+            首页不再追逐最新更新，而是把真实生活、职场表达、新闻理解和发音练习放在明确入口里。
+          </p>
+        </div>
+
+        <PracticeBento />
+      </section>
+
+      <section className="py-24 md:py-36">
+        <div className="grid gap-10 lg:grid-cols-[.82fr_1.18fr] lg:items-start">
+          <div className="home-reveal lg:sticky lg:top-28">
             <p className="studio-eyebrow">练习场景</p>
-            <h2 className="studio-title mt-1 text-3xl">选择你真正需要的英语</h2>
+            <h2 className="studio-title mt-2 max-w-xl text-4xl leading-tight sm:text-5xl">把选择变成更生活化的入口</h2>
+            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">
+              鼠标悬停时场景会展开，移动端保留清晰的垂直入口。每个入口仍进入英文资源搜索。
+            </p>
           </div>
-          <p className="max-w-xl text-sm leading-6 text-slate-400">
-            按你今天想练的声音、节奏和词汇来选择，而不是为了学英语而学英语。
-          </p>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[1.35fr_.85fr]">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {learningCategories.map((category, index) => {
-              const isActive = category.id === activeCategory.id
-              const accent = sceneAccents[index % sceneAccents.length]
 
-              return (
-                <Link
-                  key={category.id}
-                  to={`/search?q=${encodeURIComponent(category.query)}`}
-                  onMouseEnter={() => setActiveCategoryId(category.id)}
-                  onFocus={() => setActiveCategoryId(category.id)}
-                  className={`group flex min-h-[92px] items-center gap-3 rounded-xl border border-l-4 border-white/10 bg-white/[.045] p-3.5 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[.075] ${
-                    isActive ? `${accent} border-white/20 shadow-panel` : 'border-l-white/20'
-                  }`}
-                >
-                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border text-sm font-bold ${
-                    isActive ? 'border-current/30 bg-white/10' : 'border-white/10 bg-white/[.055] text-slate-300'
-                  }`}>
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="line-clamp-2 text-sm font-semibold leading-5 text-slate-50 group-hover:text-white">{category.title}</span>
-                    <span className="mt-1 block truncate text-xs leading-5 text-slate-400">{category.focus}</span>
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[.045] p-5">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[.16em] text-ember-200">{activeCategory.label}</p>
-            <h3 className="mt-3 text-2xl font-semibold leading-tight text-white">{activeCategory.title}</h3>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{activeCategory.description}</p>
-            <div className="mt-5 rounded-xl border border-white/10 bg-ink-950/30 p-3">
-              <p className="font-mono text-[10px] uppercase tracking-[.16em] text-slate-500">适合练习</p>
-              <p className="mt-1 text-sm text-slate-200">{activeCategory.focus}</p>
-            </div>
-            <Link to={`/search?q=${encodeURIComponent(activeCategory.query)}`} className="studio-button-primary mt-5 w-full">
-              开始练习
-            </Link>
-          </div>
+          <SceneAccordion categories={learningCategories} />
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="studio-eyebrow">生活话题</p>
-            <h2 className="studio-title mt-1 text-3xl">直接进入真实生活主题</h2>
-          </div>
-          <p className="max-w-xl text-sm leading-6 text-slate-400">
-            来自 PodcastIndex 分类的快捷入口，点击后会进入只保留英文资源的主题搜索。
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2.5">
-          {lifeTopics.map((topic, index) => (
-            <Link
-              key={topic.name}
-              to={`/search?q=${encodeURIComponent(topic.name.toLowerCase())}`}
-              title={topic.description}
-              className={`inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.045] px-4 py-2 text-sm font-semibold text-slate-200 transition hover:-translate-y-0.5 ${topicAccents[index % topicAccents.length]}`}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-              <span>{topic.label}</span>
-            </Link>
+      <section className="py-20">
+        <div className="home-scrub-copy mx-auto max-w-5xl text-center font-display text-4xl font-bold leading-tight tracking-[-.03em] text-slate-50 sm:text-6xl">
+          {scrubLine.split('').map((char, index) => (
+            <span key={`${char}-${index}`} className="home-scrub-word inline-block translate-y-2 opacity-10">
+              {char}
+            </span>
           ))}
         </div>
       </section>
 
+      <section className="space-y-8 py-24 md:py-32">
+        <div className="home-reveal flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="studio-eyebrow">生活话题</p>
+            <h2 className="studio-title mt-2 text-4xl leading-tight sm:text-5xl">直接进入真实生活主题</h2>
+          </div>
+          <p className="max-w-xl text-sm leading-7 text-slate-400">
+            来自 PodcastIndex 分类的快捷入口，点击后进入只保留英文资源的主题搜索。
+          </p>
+        </div>
+        <TopicMarquee topics={lifeTopics} />
+      </section>
+
       {user && (
-        <section className="space-y-4">
+        <section className="space-y-5 py-20">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="studio-eyebrow">继续收听</p>
               <h2 className="studio-title mt-1 text-3xl">接着上次的练习</h2>
             </div>
-            <Link to="/library/progress" className="text-sm font-semibold text-aurora-200 hover:text-ember-200">查看进度 →</Link>
+            <Link to="/library/progress" className="text-sm font-semibold text-amber-100 hover:text-white">查看进度 -&gt;</Link>
           </div>
           <ContinueListening items={library?.recentProgress || []} loading={libraryLoading} />
         </section>
       )}
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="space-y-8 py-24 md:py-32">
+        <div className="home-reveal flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="studio-eyebrow">跟读推荐</p>
-            <h2 className="studio-title mt-1 text-3xl">按练习适配度推荐，而不是只追最新</h2>
+            <h2 className="studio-title mt-2 max-w-3xl text-4xl leading-tight sm:text-5xl">按练习适配度推荐，而不是只追最新</h2>
           </div>
-          <p className="max-w-xl text-sm leading-6 text-slate-400">
+          <p className="max-w-xl text-sm leading-7 text-slate-400">
             每一组都从练习目标出发，结合英文趋势播客和主题搜索，再按跟读适配度排序。
           </p>
         </div>
         {loading ? (
-          <div className="space-y-6">
-            {Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-44 animate-pulse rounded-studio border border-white/10 bg-white/[.06]" />)}
+          <div className="grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-44 animate-pulse rounded-studio border border-white/10 bg-white/[.06]" />)}
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {learningCategories.map((category) => (
               <CategoryShelf
                 key={category.id}
@@ -319,6 +317,173 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      <section className="home-reveal overflow-hidden rounded-[2rem] border border-ember-300/20 bg-ember-300/10 p-8 sm:p-10 lg:p-12">
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <p className="studio-eyebrow">下一段练习</p>
+            <h2 className="studio-title mt-2 max-w-4xl text-4xl leading-tight sm:text-6xl">找一个你真的想听的话题开始</h2>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-300">
+              不为了学英语而学英语。先选兴趣，再用字幕、收藏和重复控制把英文听成自己的表达。
+            </p>
+          </div>
+          <Link to={`/search?q=${encodeURIComponent(firstCategory.query)}`} className="studio-button-primary">
+            进入练习
+          </Link>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function HeroProductPreview({ podcasts }: { podcasts: PodcastFeed[] }) {
+  const covers = podcasts.length > 0 ? podcasts : [
+    { id: 1, title: 'Everyday English stories', url: '#', image: 'https://picsum.photos/seed/podcast-cover-a/600/600', author: 'ShadowCast', description: '', language: 'en' },
+    { id: 2, title: 'Food conversations', url: '#', image: 'https://picsum.photos/seed/podcast-cover-b/600/600', author: 'ShadowCast', description: '', language: 'en' },
+    { id: 3, title: 'Workplace interviews', url: '#', image: 'https://picsum.photos/seed/podcast-cover-c/600/600', author: 'ShadowCast', description: '', language: 'en' },
+  ] as PodcastFeed[]
+
+  return (
+    <div className="home-reveal home-image-motion relative mx-auto w-full max-w-xl lg:mx-0">
+      <div className="absolute -right-10 top-8 hidden h-44 w-44 rounded-full bg-ember-300/20 blur-3xl lg:block" />
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-ink-950/72 p-4 shadow-panel backdrop-blur-2xl">
+        <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
+          <div className="grid grid-cols-3 gap-2 sm:block sm:space-y-3">
+            {covers.slice(0, 3).map((podcast, index) => (
+              <div key={podcast.id} className={`overflow-hidden rounded-2xl border border-white/10 bg-white/10 ${index === 0 ? 'sm:h-32' : 'sm:h-20'}`}>
+                <img
+                  src={podcast.image || podcast.artwork || `https://picsum.photos/seed/podcast-${podcast.id}/600/600`}
+                  alt={podcast.title}
+                  className="h-full min-h-20 w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-[1.5rem] border border-paper-700/10 bg-paper-50 p-4 text-paper-900 shadow-paper">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[.16em] text-paper-300">字幕跟读</span>
+              <span className="rounded-full border border-paper-700/15 px-2.5 py-1 font-mono text-[10px] text-paper-700/60">03:02</span>
+            </div>
+            <div className="space-y-3">
+              {[
+                'I use this phrase when I want the conversation to feel natural.',
+                'The better version is slower, clearer, and easier to repeat.',
+                'Now pause here, listen again, and copy the rhythm.',
+              ].map((line, index) => (
+                <div key={line} className={`rounded-2xl px-3 py-2 ${index === 1 ? 'bg-ember-300/28 shadow-sm' : 'bg-paper-100/55'}`}>
+                  <p className="text-sm leading-6 text-paper-900/78">{line}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 rounded-2xl border border-paper-700/10 bg-paper-900 p-3 text-paper-50">
+              <div className="mb-3 flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-ember-300 text-ink-950">
+                  <svg className="ml-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M6.3 3.9v12.2c0 .8.9 1.3 1.6.9l9.2-6.1c.6-.4.6-1.4 0-1.8L7.9 3c-.7-.4-1.6.1-1.6.9Z" />
+                  </svg>
+                </span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/15">
+                  <div className="h-full w-2/5 rounded-full bg-ember-300" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px] text-paper-50/72">
+                <span>上一句</span>
+                <span>重复</span>
+                <span>下一句</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PracticeBento() {
+  return (
+    <div className="grid grid-flow-dense gap-4 lg:grid-cols-6 lg:auto-rows-[13rem]">
+      <BentoCard className="lg:col-span-3 lg:row-span-2" title="逐句字幕练习" text="把长音频拆成可点击、可收藏、可重复的句子。学习者不用在进度条里来回猜位置。">
+        <div className="mt-6 space-y-3">
+          {['Listen for the pause.', 'Repeat the whole sentence.', 'Save the phrase for later.'].map((line, index) => (
+            <div key={line} className={`rounded-2xl border border-paper-700/10 px-4 py-3 text-sm ${index === 1 ? 'bg-ember-300/24 text-paper-900' : 'bg-paper-50/70 text-paper-900/68'}`}>
+              {line}
+            </div>
+          ))}
+        </div>
+      </BentoCard>
+      <BentoCard className="lg:col-span-3" title="英文资源优先" text="搜索词不再硬塞 English，只通过语言过滤保证结果是英文内容，减少空结果。" />
+      <BentoCard className="lg:col-span-2" title="生活主题直达" text="Food、travel、health、books 这些入口更接近用户真实兴趣。" />
+      <BentoCard className="lg:col-span-1" title="收藏参与排序" text="更受欢迎的资源会更靠前。" compact />
+    </div>
+  )
+}
+
+function BentoCard({ title, text, className = '', compact, children }: { title: string; text: string; className?: string; compact?: boolean; children?: ReactNode }) {
+  return (
+    <article className={`group overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[.045] p-5 transition duration-300 hover:-translate-y-1 hover:border-ember-300/30 hover:bg-white/[.07] ${className}`}>
+      <div className="h-full">
+        <h3 className={`${compact ? 'text-2xl' : 'text-3xl'} font-display font-bold leading-tight text-slate-50`}>{title}</h3>
+        <p className="mt-3 text-sm leading-7 text-slate-400">{text}</p>
+        {children}
+      </div>
+    </article>
+  )
+}
+
+function SceneAccordion({ categories }: { categories: LearningCategory[] }) {
+  return (
+    <>
+      <div className="hidden h-[28rem] gap-3 lg:flex">
+        {categories.slice(0, 5).map((category, index) => (
+          <Link
+            key={category.id}
+            to={`/search?q=${encodeURIComponent(category.query)}`}
+            className="group home-image-motion flex-[.86] overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[.045] transition-[flex,transform,border-color,background] duration-500 hover:flex-[2.8] hover:-translate-y-1 hover:border-ember-300/35 hover:bg-ember-300/10"
+          >
+            <div className="flex h-full min-w-0 flex-col justify-between p-5">
+              <span className="font-mono text-[11px] uppercase tracking-[.16em] text-ember-200">{category.label}</span>
+              <div>
+                <h3 className="max-w-xs font-display text-3xl font-bold leading-tight text-white">{category.title}</h3>
+                <p className="mt-4 max-w-sm text-sm leading-7 text-slate-300 opacity-0 transition duration-500 group-hover:opacity-100">{category.description}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div className="grid gap-3 lg:hidden">
+        {categories.map((category) => (
+          <Link key={category.id} to={`/search?q=${encodeURIComponent(category.query)}`} className="rounded-2xl border border-white/10 bg-white/[.045] p-4 transition hover:border-ember-300/35 hover:bg-ember-300/10">
+            <p className="font-mono text-[10px] uppercase tracking-[.16em] text-ember-200">{category.label}</p>
+            <h3 className="mt-2 text-lg font-semibold text-white">{category.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">{category.focus}</p>
+          </Link>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function TopicMarquee({ topics }: { topics: LifeTopic[] }) {
+  const visibleTopics = topics.slice(0, 18)
+  const marqueeTopics = [...visibleTopics, ...visibleTopics]
+
+  return (
+    <div className="overflow-hidden border-y border-white/10 py-4">
+      <div className="studio-marquee-track flex w-max gap-3">
+        {marqueeTopics.map((topic, index) => (
+          <Link
+            key={`${topic.name}-${index}`}
+            to={`/search?q=${encodeURIComponent(topic.name.toLowerCase())}`}
+            title={topic.description}
+            className={`inline-flex items-center rounded-full border border-white/10 bg-white/[.045] px-5 py-3 text-sm font-semibold text-slate-200 transition hover:-translate-y-0.5 ${topicAccent}`}
+          >
+            {topic.label}
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }
@@ -340,11 +505,11 @@ function CategoryShelf({
         <div>
           <p className="studio-eyebrow">{category.label}</p>
           <h3 className="studio-title mt-1 text-2xl">{category.title}</h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-400">
             {category.description} 适合练习：{category.focus}。
           </p>
         </div>
-        <Link to={`/search?q=${encodeURIComponent(category.query)}`} className="text-sm font-semibold text-aurora-200 hover:text-ember-200">
+        <Link to={`/search?q=${encodeURIComponent(category.query)}`} className="text-sm font-semibold text-amber-100 hover:text-white">
           查看这个场景 -&gt;
         </Link>
       </div>

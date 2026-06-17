@@ -238,6 +238,14 @@
     background-image: linear-gradient(135deg, rgba(56, 189, 248, .12) 25%, transparent 25%, transparent 50%, rgba(249, 197, 109, .12) 50%, rgba(249, 197, 109, .12) 75%, transparent 75%, transparent 100%);
     background-size: 18px 18px;
   }
+
+  .studio-marquee-track {
+    animation: studio-marquee 42s linear infinite;
+  }
+
+  .studio-marquee-track:hover {
+    animation-play-state: paused;
+  }
 }
 
 @layer utilities {
@@ -249,5 +257,15 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@keyframes studio-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }
