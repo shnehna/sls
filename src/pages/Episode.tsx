@@ -2,13 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { getCachedEpisodeById, getEpisodeById } from '../api/client'
 import type { Episode as EpisodeType } from '../api/types'
-import AudioPlayer from '../components/AudioPlayer'
+import EpisodeAudioControls from '../components/EpisodeAudioControls'
 import LockedTranscriptPanel from '../components/LockedTranscriptPanel'
-import ShadowControls from '../components/ShadowControls'
 import Transcript from '../components/Transcript'
 import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
-import { formatDate, formatDuration, formatTime, truncate } from '../utils/format'
+import { formatDate, formatDuration, truncate } from '../utils/format'
 
 function EpisodeArtwork({ src, title }: { src?: string; title: string }) {
   const [failed, setFailed] = useState(false)
@@ -157,98 +156,48 @@ export default function Episode() {
 
   return (
     <div className="pb-10">
-      <div className="grid gap-5 lg:grid-cols-[25rem_minmax(0,1fr)] lg:items-start">
-        <aside className="studio-practice-deck space-y-5">
+      <div className="grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[22rem_minmax(0,1fr)]">
+        <aside className="studio-practice-deck space-y-4">
           <Link to={`/podcast/${episode.feedId || ''}`} className="inline-flex items-center font-mono text-[11px] font-semibold uppercase tracking-[.16em] text-slate-400 transition hover:text-ember-200">
             ← 返回播客
           </Link>
 
-          <div className="overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/[.04]">
-            <div className="aspect-square max-h-72 w-full overflow-hidden lg:max-h-none">
+          <section className="flex gap-3">
+            <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[.04] shadow-glow">
               <EpisodeArtwork src={episode.image || episode.feedImage} title={episode.title} />
             </div>
-          </div>
-
-          <section>
-            <p className="studio-eyebrow">收听工作台</p>
-            <h1 className="mt-2 font-display text-3xl font-bold leading-[.98] tracking-[-.05em] text-slate-50 sm:text-4xl lg:text-3xl xl:text-4xl">
-              {episode.title}
-            </h1>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {episode.feedTitle && <span className="studio-chip">{episode.feedTitle}</span>}
-              {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
-              {episode.datePublished && <span className="studio-chip">{formatDate(episode.datePublished)}</span>}
-              <span className={`studio-chip ${hasTranscript ? '!border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200' : '!border-white/10 !text-slate-500'}`}>
-                {hasTranscript ? '字幕可用' : '暂无字幕'}
-              </span>
+            <div className="min-w-0 flex-1">
+              <p className="studio-eyebrow">收听工作台</p>
+              <h1 className="mt-2 line-clamp-4 font-display text-2xl font-bold leading-tight tracking-[-.045em] text-slate-50">
+                {episode.title}
+              </h1>
+              {episode.feedTitle && <p className="mt-2 truncate text-sm text-slate-400">{episode.feedTitle}</p>}
             </div>
-            <p className="mt-4 text-sm leading-7 text-slate-400">{truncate(episode.description || '', 260)}</p>
           </section>
 
-          <AudioPlayer compact />
+          <div className="flex flex-wrap gap-2">
+            {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
+            {episode.datePublished && <span className="studio-chip">{formatDate(episode.datePublished)}</span>}
+            <span className={`studio-chip ${hasTranscript ? '!border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200' : '!border-white/10 !text-slate-500'}`}>
+              {hasTranscript ? '字幕可用' : '暂无字幕'}
+            </span>
+          </div>
 
-
-          {user && (
-            <>
-              <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">字幕处理</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-400">
-                  {transcriptStatus === 'ready'
-                    ? '这一集已经有可重复练习的逐句字幕。'
-                    : transcriptStatus === 'processing'
-                      ? `后端语音识别正在${transcriptJob?.status.replace(/_/g, ' ') || '处理中'}，页面会自动刷新。`
-                      : hasRemoteTranscript
-                        ? '发现远程字幕，可以解析并保存到本地。'
-                        : '没有发现字幕元数据，可以从音频生成同步字幕。'}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {hasRemoteTranscript && transcriptSource !== 'stored' && (
-                    <button onClick={importCurrentTranscript} className="rounded-full bg-ember-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-ember-200">
-                      导入字幕
-                    </button>
-                  )}
-                  {!hasRemoteTranscript && transcriptStatus !== 'processing' && (
-                    <button onClick={() => createTranscriptJob()} className="rounded-full bg-aurora-300 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-aurora-200">
-                      生成字幕
-                    </button>
-                  )}
-                  <button onClick={refreshTranscript} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/20">
-                    刷新
-                  </button>
-                </div>
-                {transcriptError && <p className="mt-3 text-xs leading-5 text-rose-200">{transcriptError}</p>}
-              </section>
-
-              <ShadowControls
-                playbackRate={state.playbackRate}
-                activeStart={activeCue?.startTime}
-                activeEnd={activeCue?.endTime}
-                onRateChange={setRate}
-                onPrevCue={prevCue}
-                onNextCue={nextCue}
-                onRepeatCue={repeatActiveCue}
-                onLoopChange={setLoopCurrentCue}
-              />
-
-              {activeCue && (
-                <div className="rounded-2xl border border-aurora-300/15 bg-aurora-300/10 p-4">
-                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-200">当前句子</p>
-                  <p className="mt-2 font-mono text-sm text-slate-100">{formatTime(activeCue.startTime)} — {formatTime(activeCue.endTime)}</p>
-                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{activeCue.text}</p>
-                </div>
-              )}
-
-              <section className="rounded-2xl border border-white/10 bg-white/[.04] p-4">
-                <h3 className="font-display text-xl font-bold tracking-[-.04em] text-slate-50">快捷键</h3>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <kbd className="studio-kbd">← 上一句</kbd>
-                  <kbd className="studio-kbd">→ 下一句</kbd>
-                  <kbd className="studio-kbd">R 重复</kbd>
-                  <kbd className="studio-kbd">Space 播放</kbd>
-                </div>
-              </section>
-            </>
+          {episode.description && (
+            <p className="line-clamp-3 text-xs leading-6 text-slate-400">{truncate(episode.description, 160)}</p>
           )}
+
+          <EpisodeAudioControls
+            showShadowControls={!!user}
+            playbackRate={state.playbackRate}
+            activeStart={activeCue?.startTime}
+            activeEnd={activeCue?.endTime}
+            onRateChange={setRate}
+            onPrevCue={prevCue}
+            onNextCue={nextCue}
+            onRepeatCue={repeatActiveCue}
+            onLoopChange={setLoopCurrentCue}
+          />
         </aside>
 
         {user ? (

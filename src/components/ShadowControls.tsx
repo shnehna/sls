@@ -10,6 +10,7 @@ interface Props {
   onNextCue: () => void
   onRepeatCue: () => void
   onLoopChange?: (enabled: boolean) => void
+  embedded?: boolean
 }
 
 const RATES = [0.65, 0.8, 1, 1.15, 1.35]
@@ -23,6 +24,7 @@ export default function ShadowControls({
   onNextCue,
   onRepeatCue,
   onLoopChange,
+  embedded = false,
 }: Props) {
   const [loopCue, setLoopCue] = useState(false)
 
@@ -30,12 +32,14 @@ export default function ShadowControls({
     onLoopChange?.(loopCue)
   }, [loopCue, onLoopChange])
 
-  return (
-    <section className="rounded-2xl border border-white/10 bg-white/[.045] p-4">
+  const content = (
+    <>
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="studio-eyebrow">练习</p>
-          <h2 className="mt-1 font-display text-2xl font-bold tracking-[-.04em] text-slate-50">重复当前句</h2>
+          <h2 className={`${embedded ? 'mt-1 text-xl' : 'mt-1 text-2xl'} font-display font-bold tracking-[-.04em] text-slate-50`}>
+            跟读控制
+          </h2>
         </div>
         {activeStart !== undefined && activeEnd !== undefined && (
           <span className="rounded-full border border-ember-300/20 bg-ember-300/10 px-3 py-1 font-mono text-[11px] text-ember-200">
@@ -44,7 +48,7 @@ export default function ShadowControls({
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className={`${embedded ? 'mt-3' : 'mt-4'} grid grid-cols-3 gap-2`}>
         <button onClick={onPrevCue} className="studio-button-ghost !px-3 !py-3" aria-label="上一句">
           ←
           <span className="ml-1 hidden sm:inline lg:hidden xl:inline">上一句</span>
@@ -73,7 +77,7 @@ export default function ShadowControls({
         </span>
       </button>
 
-      <div className="mt-4 rounded-2xl border border-white/10 bg-ink-950/45 p-3">
+      <div className="mt-3 rounded-2xl border border-white/10 bg-ink-950/45 p-3">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">速度</span>
           <span className="font-mono text-xs text-aurora-200">{playbackRate.toFixed(2)}×</span>
@@ -95,6 +99,16 @@ export default function ShadowControls({
           ))}
         </div>
       </div>
+    </>
+  )
+
+  if (embedded) {
+    return <div className="space-y-3">{content}</div>
+  }
+
+  return (
+    <section className="rounded-2xl border border-white/10 bg-white/[.045] p-4">
+      {content}
     </section>
   )
 }

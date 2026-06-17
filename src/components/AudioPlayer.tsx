@@ -7,6 +7,9 @@ import { formatTime } from '../utils/format'
 
 interface Props {
   compact?: boolean
+  embedded?: boolean
+  hideRateControl?: boolean
+  minimal?: boolean
 }
 
 function PlayerArtwork({ src, title, compact }: { src?: string; title: string; compact?: boolean }) {
@@ -32,7 +35,7 @@ function PlayerArtwork({ src, title, compact }: { src?: string; title: string; c
   )
 }
 
-export default function AudioPlayer({ compact = false }: Props) {
+export default function AudioPlayer({ compact = false, embedded = false, hideRateControl = false, minimal = false }: Props) {
   const { user } = useAuth()
   const { state, audioRef, togglePlay, seek, setRate, setVolume, dispatch } = usePlayer()
   const lastProgressSaveRef = useRef(0)
@@ -105,6 +108,56 @@ export default function AudioPlayer({ compact = false }: Props) {
     ? 'grid h-14 w-14 flex-shrink-0 place-items-center rounded-2xl bg-ember-300 text-ink-950 shadow-ember transition duration-200 hover:-translate-y-0.5 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-ember-300 focus:ring-offset-2 focus:ring-offset-ink-950'
     : 'grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl bg-ember-300 text-ink-950 shadow-ember transition duration-200 hover:-translate-y-0.5 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-ember-300 focus:ring-offset-2 focus:ring-offset-ink-950'
 
+  const minimalPlayerBody = (
+    <>
+      <audio ref={audioRef} src={episode.enclosureUrl} preload="metadata" />
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <button onClick={togglePlay} className={playButtonClass} aria-label={state.isPlaying ? '暂停' : '播放'}>
+            {state.isPlaying ? (
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h3v12H5V4Zm7 0h3v12h-3V4Z" /></svg>
+            ) : (
+              <svg className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 3.9v12.2c0 .8.9 1.3 1.6.9l9.2-6.1c.6-.4.6-1.4 0-1.8L7.9 3c-.7-.4-1.6.1-1.6.9Z" /></svg>
+            )}
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-center justify-between font-mono text-[11px] text-slate-400">
+              <span>{formatTime(state.currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+            <div
+              className="studio-scrubber"
+              onClick={seekFromPointer}
+              role="slider"
+              aria-label="调整播放位置"
+              aria-valuemin={0}
+              aria-valuemax={duration}
+              aria-valuenow={state.currentTime}
+            >
+              <div className="studio-scrubber-fill" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">音量</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={state.volume}
+            onChange={(event) => setVolume(Number(event.target.value))}
+            className="min-w-0 flex-1 accent-ember-300"
+            aria-label="音量"
+          />
+        </div>
+      </div>
+    </>
+  )
+
   const playerBody = (
     <>
       <audio ref={audioRef} src={episode.enclosureUrl} preload="metadata" />
@@ -151,18 +204,23 @@ export default function AudioPlayer({ compact = false }: Props) {
           </div>
         </div>
 
-        <div className={compact ? 'grid grid-cols-[1fr_auto] items-center gap-3' : 'hidden items-center gap-3 sm:flex'}>
-          <label className="sr-only" htmlFor={compact ? 'episode-playback-rate' : 'playback-rate'}>播放速度</label>
-          <select
-            id={compact ? 'episode-playback-rate' : 'playback-rate'}
-            value={state.playbackRate}
-            onChange={(event) => setRate(Number(event.target.value))}
-            className="rounded-xl border border-white/10 bg-ink-950/80 px-3 py-2 font-mono text-xs text-slate-100 outline-none focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
-            aria-label="播放速度"
-          >
-            {[0.65, 0.8, 1, 1.15, 1.35, 1.5, 2].map((rate) => <option key={rate} value={rate}>{rate}×</option>)}
-          </select>
+        <div className={compact ? 'flex items-center gap-3' : 'hidden items-center gap-3 sm:flex'}>
+          {!hideRateControl && (
+            <>
+              <label className="sr-only" htmlFor={compact ? 'episode-playback-rate' : 'playback-rate'}>播放速度</label>
+              <select
+                id={compact ? 'episode-playback-rate' : 'playback-rate'}
+                value={state.playbackRate}
+                onChange={(event) => setRate(Number(event.target.value))}
+                className="rounded-xl border border-white/10 bg-ink-950/80 px-3 py-2 font-mono text-xs text-slate-100 outline-none focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
+                aria-label="播放速度"
+              >
+                {[0.65, 0.8, 1, 1.15, 1.35, 1.5, 2].map((rate) => <option key={rate} value={rate}>{rate}×</option>)}
+              </select>
+            </>
+          )}
 
+          {hideRateControl && <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">音量</span>}
           <input
             type="range"
             min="0"
@@ -170,7 +228,7 @@ export default function AudioPlayer({ compact = false }: Props) {
             step="0.01"
             value={state.volume}
             onChange={(event) => setVolume(Number(event.target.value))}
-            className={`${compact ? 'w-full' : 'w-20'} accent-ember-300`}
+            className={`${compact ? 'min-w-0 flex-1' : 'w-20'} accent-ember-300`}
             aria-label="音量"
           />
         </div>
@@ -179,6 +237,11 @@ export default function AudioPlayer({ compact = false }: Props) {
   )
 
   if (compact) {
+    if (minimal) {
+      if (embedded) return <>{minimalPlayerBody}</>
+      return <div className="rounded-2xl border border-white/10 bg-ink-950/45 p-4">{minimalPlayerBody}</div>
+    }
+    if (embedded) return <>{playerBody}</>
     return <div className="rounded-2xl border border-white/10 bg-ink-950/45 p-4">{playerBody}</div>
   }
 
