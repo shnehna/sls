@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { MusicNote } from '@phosphor-icons/react'
 import ContinueListening from '../components/ContinueListening'
 import { useAuth } from '../context/AuthContext'
 import { useLibrary } from '../context/LibraryContext'
@@ -51,7 +52,7 @@ export default function Library() {
             <p className="studio-eyebrow">继续收听</p>
             <h2 className="studio-title mt-1 text-3xl">接着上次的练习</h2>
           </div>
-          <Link to="/library/progress" className="hidden text-sm font-semibold text-aurora-200 hover:text-ember-200 sm:block">查看进度 →</Link>
+          <Link to="/library/progress" className="hidden text-sm font-semibold text-amber-100 hover:text-white sm:block">查看进度</Link>
         </div>
         <ContinueListening items={library?.recentProgress || []} loading={loading} />
       </section>
@@ -63,14 +64,14 @@ export default function Library() {
               <p className="studio-eyebrow">收藏播客</p>
               <h2 className="studio-title mt-1 text-3xl">你的个人书架</h2>
             </div>
-            <Link to="/library/saved" className="text-sm font-semibold text-aurora-200 hover:text-ember-200">查看全部 →</Link>
+            <Link to="/library/saved" className="text-sm font-semibold text-amber-100 hover:text-white">查看全部</Link>
           </div>
           <div className="space-y-3">
             {(library?.savedPodcasts || []).length === 0 && <Empty text="从搜索页或播客详情页收藏播客后，会显示在这里。" />}
             {(library?.savedPodcasts || []).map((podcast) => (
               <Link key={podcast.id} to={`/podcast/${podcast.podcastId}`} className="studio-card flex items-center gap-3 p-4">
                 <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-white/[.06] text-ember-300">
-                  {podcast.image ? <img src={podcast.image} alt="" className="h-full w-full object-cover" /> : '♪'}
+                  {podcast.image ? <img src={podcast.image} alt="" className="h-full w-full object-cover" /> : <MusicNote weight="fill" aria-hidden="true" />}
                 </div>
                 <div className="min-w-0">
                   <h3 className="truncate font-semibold text-slate-50">{podcast.title || `播客 ${podcast.podcastId}`}</h3>
@@ -87,7 +88,7 @@ export default function Library() {
               <p className="studio-eyebrow">最近书签</p>
               <h2 className="studio-title mt-1 text-3xl">练习保存过的句子</h2>
             </div>
-            <Link to="/library/bookmarks" className="text-sm font-semibold text-aurora-200 hover:text-ember-200">查看全部 →</Link>
+            <Link to="/library/bookmarks" className="text-sm font-semibold text-amber-100 hover:text-white">查看全部</Link>
           </div>
           <div className="space-y-3">
             {(library?.recentBookmarks || []).length === 0 && <Empty text="练习时收藏字幕句子后，会集中显示在这里。" />}

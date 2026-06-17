@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import { MusicNote } from '@phosphor-icons/react'
 import type { PodcastFeed } from '../api/types'
 import SavedPodcastButton from './SavedPodcastButton'
 import { truncate } from '../utils/format'
@@ -30,7 +31,9 @@ export default function PodcastCard({ podcast, saveCount, onSaveCountChange }: P
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <div className="grid h-full w-full place-items-center bg-ink-800 text-2xl text-ember-300">♪</div>
+          <div className="grid h-full w-full place-items-center bg-ink-800 text-2xl text-ember-300">
+            <MusicNote weight="fill" aria-hidden="true" />
+          </div>
         )}
       </Link>
 
@@ -51,7 +54,7 @@ export default function PodcastCard({ podcast, saveCount, onSaveCountChange }: P
         </Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2">
-            {categories.map((category) => <span key={category} className="font-mono text-[11px] text-aurora-200/80">#{category}</span>)}
+            {categories.map((category) => <span key={category} className="font-mono text-[11px] text-amber-100/80">#{category}</span>)}
           </div>
           <SavedPodcastButton
             podcast={podcast}

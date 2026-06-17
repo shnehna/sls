@@ -11,6 +11,7 @@ import Account from './pages/Account'
 import Library from './pages/Library'
 import SavedPodcasts, { Bookmarks, Progress } from './pages/SavedPodcasts'
 import Onboarding from './pages/Onboarding'
+import NotFound from './pages/NotFound'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="auth/callback/github" element={<AuthCallback />} />
         <Route path="account" element={<Account />} />
         <Route path="onboarding" element={<Onboarding />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   )

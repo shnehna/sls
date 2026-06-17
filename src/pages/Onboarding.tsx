@@ -50,7 +50,7 @@ function ChoiceGroup({ title, options, value, onChange }: { title: string; optio
             key={option}
             type="button"
             onClick={() => onChange(option)}
-            className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${value === option ? 'border-ember-300/50 bg-ember-300/15 text-amber-100' : 'border-white/10 bg-white/[.04] text-slate-300 hover:border-aurora-300/40 hover:text-white'}`}
+            className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${value === option ? 'border-ember-300/50 bg-ember-300/15 text-amber-100' : 'border-white/10 bg-white/[.04] text-slate-300 hover:border-ember-300/35 hover:text-white'}`}
           >
             {option}
           </button>

@@ -125,7 +125,7 @@ export default function Search() {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="试试：pronunciation、science、business、news..."
-            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[.06] px-4 py-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
+            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[.06] px-4 py-3 text-sm text-slate-50 outline-none placeholder:text-slate-500 focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20"
           />
           <button className="studio-button-primary">搜索</button>
         </form>

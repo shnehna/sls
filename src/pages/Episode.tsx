@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { MusicNote } from '@phosphor-icons/react'
 import { getCachedEpisodeById, getEpisodeById } from '../api/client'
 import type { Episode as EpisodeType } from '../api/types'
 import EpisodeAudioControls from '../components/EpisodeAudioControls'
@@ -7,13 +8,17 @@ import LockedTranscriptPanel from '../components/LockedTranscriptPanel'
 import Transcript from '../components/Transcript'
 import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
-import { formatDate, formatDuration, truncate } from '../utils/format'
+import { formatDate, formatDuration } from '../utils/format'
 
 function EpisodeArtwork({ src, title }: { src?: string; title: string }) {
   const [failed, setFailed] = useState(false)
 
   if (!src || failed) {
-    return <div className="grid h-full w-full place-items-center bg-ink-800 text-5xl text-ember-300">♪</div>
+    return (
+      <div className="grid h-full w-full place-items-center bg-ink-800 text-5xl text-ember-300">
+        <MusicNote weight="fill" aria-hidden="true" />
+      </div>
+    )
   }
 
   return (
@@ -155,74 +160,71 @@ export default function Episode() {
   const hasTranscript = !!(episode.transcripts?.length || episode.transcriptUrl)
 
   return (
-    <div className="pb-10">
-      <div className="grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[22rem_minmax(0,1fr)]">
-        <aside className="studio-practice-deck space-y-4">
-          <Link to={`/podcast/${episode.feedId || ''}`} className="inline-flex items-center font-mono text-[11px] font-semibold uppercase tracking-[.16em] text-slate-400 transition hover:text-ember-200">
-            ← 返回播客
-          </Link>
-
-          <section className="flex gap-3">
-            <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[.04] shadow-glow">
+    <div className="space-y-4 pb-80 xl:pb-44">
+      <header className="rounded-console border border-white/10 bg-white/[.045] p-3 shadow-panel backdrop-blur-xl sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[.04] shadow-glow">
               <EpisodeArtwork src={episode.image || episode.feedImage} title={episode.title} />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="studio-eyebrow">收听工作台</p>
-              <h1 className="mt-2 line-clamp-4 font-display text-2xl font-bold leading-tight tracking-[-.045em] text-slate-50">
+            <div className="min-w-0">
+              <Link to={`/podcast/${episode.feedId || ''}`} className="text-xs font-semibold text-slate-400 transition hover:text-amber-100">
+                返回播客
+              </Link>
+              <h1 className="mt-1 line-clamp-2 font-sans text-2xl font-semibold leading-snug tracking-[-.02em] text-slate-50 sm:text-3xl">
                 {episode.title}
               </h1>
-              {episode.feedTitle && <p className="mt-2 truncate text-sm text-slate-400">{episode.feedTitle}</p>}
+              {episode.feedTitle && <p className="mt-1 truncate text-sm text-slate-400">{episode.feedTitle}</p>}
             </div>
-          </section>
+          </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 lg:max-w-md lg:justify-end">
             {episode.duration && <span className="studio-chip">{formatDuration(episode.duration)}</span>}
             {episode.datePublished && <span className="studio-chip">{formatDate(episode.datePublished)}</span>}
             <span className={`studio-chip ${hasTranscript ? '!border-emerald-300/30 !bg-emerald-300/10 !text-emerald-200' : '!border-white/10 !text-slate-500'}`}>
               {hasTranscript ? '字幕可用' : '暂无字幕'}
             </span>
           </div>
+        </div>
+      </header>
 
-          {episode.description && (
-            <p className="line-clamp-3 text-xs leading-6 text-slate-400">{truncate(episode.description, 160)}</p>
-          )}
+      {user ? (
+        <Transcript
+          cues={cues}
+          currentTime={state.currentTime}
+          activeCueIndex={state.activeCueIndex}
+          onCueClick={seekToCue}
+          loading={loadingTranscript}
+          status={transcriptStatus}
+          source={transcriptSource}
+          error={transcriptError}
+          job={transcriptJob}
+          transcriptId={transcriptId || undefined}
+          episodeId={episode.id}
+          episodeTitle={episode.title}
+          podcastTitle={episode.feedTitle}
+          hasRemoteTranscript={hasRemoteTranscript}
+          reservePracticeControls
+          onImportTranscript={importCurrentTranscript}
+          onCreateJob={() => createTranscriptJob()}
+          onRefresh={refreshTranscript}
+        />
+      ) : (
+        <LockedTranscriptPanel />
+      )}
 
-          <EpisodeAudioControls
-            showShadowControls={!!user}
-            playbackRate={state.playbackRate}
-            activeStart={activeCue?.startTime}
-            activeEnd={activeCue?.endTime}
-            onRateChange={setRate}
-            onPrevCue={prevCue}
-            onNextCue={nextCue}
-            onRepeatCue={repeatActiveCue}
-            onLoopChange={setLoopCurrentCue}
-          />
-        </aside>
-
-        {user ? (
-          <Transcript
-            cues={cues}
-            currentTime={state.currentTime}
-            activeCueIndex={state.activeCueIndex}
-            onCueClick={seekToCue}
-            loading={loadingTranscript}
-            status={transcriptStatus}
-            source={transcriptSource}
-            error={transcriptError}
-            job={transcriptJob}
-            transcriptId={transcriptId || undefined}
-            episodeId={episode.id}
-            episodeTitle={episode.title}
-            podcastTitle={episode.feedTitle}
-            hasRemoteTranscript={hasRemoteTranscript}
-            onImportTranscript={importCurrentTranscript}
-            onCreateJob={() => createTranscriptJob()}
-            onRefresh={refreshTranscript}
-          />
-        ) : (
-          <LockedTranscriptPanel />
-        )}
+      <div className="fixed bottom-3 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-7xl -translate-x-1/2 sm:w-[calc(100%-3rem)]">
+        <EpisodeAudioControls
+          showShadowControls={!!user}
+          playbackRate={state.playbackRate}
+          activeStart={activeCue?.startTime}
+          activeEnd={activeCue?.endTime}
+          onRateChange={setRate}
+          onPrevCue={prevCue}
+          onNextCue={nextCue}
+          onRepeatCue={repeatActiveCue}
+          onLoopChange={setLoopCurrentCue}
+        />
       </div>
     </div>
   )

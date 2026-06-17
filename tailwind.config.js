@@ -24,23 +24,11 @@ export default {
           700: '#4B3420',
           900: '#20150D',
         },
-        aurora: {
-          300: '#7DD3FC',
-          400: '#38BDF8',
-          500: '#0EA5E9',
-          600: '#0369A1',
-        },
         ember: {
           300: '#F9C56D',
           400: '#F59E0B',
           500: '#D97706',
           600: '#92400E',
-        },
-        violet: {
-          300: '#C4B5FD',
-          400: '#A78BFA',
-          500: '#8B5CF6',
-          700: '#5B21B6',
         },
         success: '#34D399',
         danger: '#FB7185',
@@ -52,11 +40,11 @@ export default {
       },
       borderRadius: {
         studio: '1rem',
-        console: '1.35rem',
+        console: '1.5rem',
         deck: '1.75rem',
       },
       boxShadow: {
-        glow: '0 0 40px rgba(56, 189, 248, .2)',
+        glow: '0 0 40px rgba(249, 197, 109, .18)',
         ember: '0 16px 40px rgba(245, 158, 11, .2)',
         panel: '0 24px 80px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .06)',
         paper: '0 30px 70px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .65)',

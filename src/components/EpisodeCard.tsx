@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from '@phosphor-icons/react'
 import type { Episode } from '../api/types'
 import { formatDate, formatDuration, truncate } from '../utils/format'
 
@@ -36,7 +37,10 @@ export default function EpisodeCard({ episode }: Props) {
             {persons.length > 0 && <span>{persons.map((p) => p.name).join(' · ')}</span>}
           </div>
         </div>
-        <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/[.05] px-3 py-1.5 text-sm font-medium text-aurora-200 transition group-hover:border-ember-300/30 group-hover:text-ember-100 sm:block">打开 →</span>
+        <span className="hidden shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/[.05] px-3 py-1.5 text-sm font-medium text-amber-100 transition group-hover:border-ember-300/30 group-hover:text-white sm:flex">
+          打开
+          <ArrowRight className="h-3.5 w-3.5" weight="bold" aria-hidden="true" />
+        </span>
       </div>
     </Link>
   )

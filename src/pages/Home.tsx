@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { Play } from '@phosphor-icons/react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { getCachedCategoryList, getCachedSearchByTerm, getCachedTrendingPodcasts, getCategoryList, getTrendingPodcasts, searchByTerm } from '../api/client'
 import type { PodcastFeed } from '../api/types'
@@ -13,13 +13,11 @@ import { learningCategories, rankPodcastsForCategory, type LearningCategory } fr
 import { lifeTopicCatalog, lifeTopicsFromCategories, type LifeTopic } from '../data/lifeTopics'
 import { usePodcastSaveCounts } from '../hooks/usePodcastSaveCounts'
 
-gsap.registerPlugin(ScrollTrigger, useGSAP)
+gsap.registerPlugin(useGSAP)
 
 type CategoryResults = Record<string, PodcastFeed[]>
 
 const topicAccent = 'hover:border-ember-300/45 hover:bg-ember-300/10 hover:text-amber-100'
-const scrubLine = '先听懂真实语速，再跟上表达节奏，最后把句子变成自己的口语素材。'
-
 function mergePodcastFeeds(...groups: PodcastFeed[][]): PodcastFeed[] {
   const seen = new Set<number>()
   return groups.flat().filter((podcast) => {
@@ -92,36 +90,6 @@ export default function Home() {
       stagger: 0.08,
     })
 
-    gsap.utils.toArray<HTMLElement>('.home-image-motion').forEach((element) => {
-      gsap.fromTo(
-        element,
-        { scale: 0.9, opacity: 0.58 },
-        {
-          scale: 1,
-          opacity: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: element,
-            start: 'top 88%',
-            end: 'bottom 42%',
-            scrub: true,
-          },
-        }
-      )
-    })
-
-    gsap.to('.home-scrub-word', {
-      opacity: 1,
-      y: 0,
-      stagger: 0.08,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '.home-scrub-copy',
-        start: 'top 82%',
-        end: 'bottom 48%',
-        scrub: true,
-      },
-    })
   }, { scope: rootRef, dependencies: [loading], revertOnUpdate: true })
 
   useEffect(() => {
@@ -187,7 +155,7 @@ export default function Home() {
 
   return (
     <div ref={rootRef} className="w-full max-w-full overflow-x-hidden pb-28">
-      <section className="relative min-h-[calc(100dvh-5rem)] overflow-hidden rounded-[2rem] border border-white/10 bg-ink-950/45 px-5 py-14 shadow-panel sm:px-8 lg:px-12 lg:py-20">
+      <section className="relative min-h-[calc(100dvh-5rem)] overflow-hidden rounded-console border border-white/10 bg-ink-950/45 px-5 py-14 shadow-panel sm:px-8 lg:px-12 lg:py-20">
         <div className="absolute inset-0 opacity-70">
           <img
             src="https://picsum.photos/seed/podcast-listening-room/1920/1080"
@@ -253,16 +221,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="home-scrub-copy mx-auto max-w-5xl text-center font-display text-4xl font-bold leading-tight tracking-[-.03em] text-slate-50 sm:text-6xl">
-          {scrubLine.split('').map((char, index) => (
-            <span key={`${char}-${index}`} className="home-scrub-word inline-block translate-y-2 opacity-10">
-              {char}
-            </span>
-          ))}
-        </div>
-      </section>
-
       <section className="space-y-8 py-24 md:py-32">
         <div className="home-reveal flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -318,7 +276,7 @@ export default function Home() {
         )}
       </section>
 
-      <section className="home-reveal overflow-hidden rounded-[2rem] border border-ember-300/20 bg-ember-300/10 p-8 sm:p-10 lg:p-12">
+      <section className="home-reveal overflow-hidden rounded-console border border-ember-300/20 bg-ember-300/10 p-8 sm:p-10 lg:p-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <p className="studio-eyebrow">下一段练习</p>
@@ -344,9 +302,9 @@ function HeroProductPreview({ podcasts }: { podcasts: PodcastFeed[] }) {
   ] as PodcastFeed[]
 
   return (
-    <div className="home-reveal home-image-motion relative mx-auto w-full max-w-xl lg:mx-0">
+    <div className="home-reveal relative mx-auto w-full max-w-xl lg:mx-0">
       <div className="absolute -right-10 top-8 hidden h-44 w-44 rounded-full bg-ember-300/20 blur-3xl lg:block" />
-      <div className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-ink-950/72 p-4 shadow-panel backdrop-blur-2xl">
+      <div className="relative overflow-hidden rounded-console border border-white/12 bg-ink-950/72 p-4 shadow-panel backdrop-blur-2xl">
         <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
           <div className="grid grid-cols-3 gap-2 sm:block sm:space-y-3">
             {covers.slice(0, 3).map((podcast, index) => (
@@ -362,7 +320,7 @@ function HeroProductPreview({ podcasts }: { podcasts: PodcastFeed[] }) {
             ))}
           </div>
 
-          <div className="rounded-[1.5rem] border border-paper-700/10 bg-paper-50 p-4 text-paper-900 shadow-paper">
+          <div className="rounded-console border border-paper-700/10 bg-paper-50 p-4 text-paper-900 shadow-paper">
             <div className="mb-4 flex items-center justify-between gap-3">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[.16em] text-paper-300">字幕跟读</span>
               <span className="rounded-full border border-paper-700/15 px-2.5 py-1 font-mono text-[10px] text-paper-700/60">03:02</span>
@@ -381,9 +339,7 @@ function HeroProductPreview({ podcasts }: { podcasts: PodcastFeed[] }) {
             <div className="mt-5 rounded-2xl border border-paper-700/10 bg-paper-900 p-3 text-paper-50">
               <div className="mb-3 flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-ember-300 text-ink-950">
-                  <svg className="ml-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M6.3 3.9v12.2c0 .8.9 1.3 1.6.9l9.2-6.1c.6-.4.6-1.4 0-1.8L7.9 3c-.7-.4-1.6.1-1.6.9Z" />
-                  </svg>
+                  <Play className="ml-0.5 h-4 w-4" weight="fill" aria-hidden="true" />
                 </span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/15">
                   <div className="h-full w-2/5 rounded-full bg-ember-300" />
@@ -423,7 +379,7 @@ function PracticeBento() {
 
 function BentoCard({ title, text, className = '', compact, children }: { title: string; text: string; className?: string; compact?: boolean; children?: ReactNode }) {
   return (
-    <article className={`group overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[.045] p-5 transition duration-300 hover:-translate-y-1 hover:border-ember-300/30 hover:bg-white/[.07] ${className}`}>
+    <article className={`group overflow-hidden rounded-console border border-white/10 bg-white/[.045] p-5 transition duration-300 hover:-translate-y-1 hover:border-ember-300/30 hover:bg-white/[.07] ${className}`}>
       <div className="h-full">
         <h3 className={`${compact ? 'text-2xl' : 'text-3xl'} font-display font-bold leading-tight text-slate-50`}>{title}</h3>
         <p className="mt-3 text-sm leading-7 text-slate-400">{text}</p>
@@ -441,7 +397,7 @@ function SceneAccordion({ categories }: { categories: LearningCategory[] }) {
           <Link
             key={category.id}
             to={`/search?q=${encodeURIComponent(category.query)}`}
-            className="group home-image-motion flex-[.86] overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[.045] transition-[flex,transform,border-color,background] duration-500 hover:flex-[2.8] hover:-translate-y-1 hover:border-ember-300/35 hover:bg-ember-300/10"
+            className="group flex-[.86] overflow-hidden rounded-console border border-white/10 bg-white/[.045] transition-[flex,transform,border-color,background] duration-500 hover:flex-[2.8] hover:-translate-y-1 hover:border-ember-300/35 hover:bg-ember-300/10"
           >
             <div className="flex h-full min-w-0 flex-col justify-between p-5">
               <span className="font-mono text-[11px] uppercase tracking-[.16em] text-ember-200">{category.label}</span>

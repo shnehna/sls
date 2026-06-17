@@ -45,11 +45,11 @@ export default function Login() {
         </div>
         <label className="block text-sm font-medium text-slate-200">
           用户名
-          <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" className="mt-2 w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 focus:border-aurora-300" placeholder="yourname" required />
+          <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" className="mt-2 w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20" placeholder="yourname" required />
         </label>
         <label className="block text-sm font-medium text-slate-200">
           密码
-          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" autoComplete="current-password" className="mt-2 w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 focus:border-aurora-300" placeholder="••••••••" required />
+          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" autoComplete="current-password" className="mt-2 w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20" placeholder="••••••••" required />
         </label>
         <label className="flex items-center gap-2 text-sm text-slate-300">
           <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="h-4 w-4 rounded border-white/20 bg-ink-950" />
@@ -57,7 +57,7 @@ export default function Login() {
         </label>
         {error && <p className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-rose-200">{error}</p>}
         <button disabled={submitting} className="studio-button-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">{submitting ? '登录中...' : '登录'}</button>
-        <p className="text-center text-sm text-slate-400">还没有账号？ <Link to="/auth/register" className="text-aurora-300 hover:text-ember-300">去注册</Link></p>
+        <p className="text-center text-sm text-slate-400">还没有账号？ <Link to="/auth/register" className="text-amber-100 hover:text-white">去注册</Link></p>
       </form>
     </section>
   )

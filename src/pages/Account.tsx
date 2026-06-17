@@ -62,9 +62,9 @@ export default function Account() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="h-16 w-16 rounded-3xl border border-white/10 object-cover" />
+              <img src={user.avatarUrl} alt="" className="h-16 w-16 rounded-2xl border border-white/10 object-cover" />
             ) : (
-              <div className="grid h-16 w-16 place-items-center rounded-3xl border border-white/10 bg-white/10 font-display text-2xl font-bold text-white">{user.displayName.slice(0, 1).toUpperCase()}</div>
+              <div className="grid h-16 w-16 place-items-center rounded-2xl border border-white/10 bg-white/10 font-display text-2xl font-bold text-white">{user.displayName.slice(0, 1).toUpperCase()}</div>
             )}
             <div>
               <p className="studio-eyebrow">个人资料</p>
@@ -105,8 +105,8 @@ export default function Account() {
             <h2 className="mt-2 font-display text-3xl font-bold text-white">修改密码</h2>
           </div>
           {!passwordIdentity && <p className="rounded-2xl border border-ember-300/20 bg-ember-300/10 px-4 py-3 text-sm text-amber-100">这个账号还没有启用密码登录。</p>}
-          <input value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} type="password" autoComplete="current-password" placeholder="当前密码" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 disabled:opacity-50" />
-          <input value={newPassword} onChange={(event) => setNewPassword(event.target.value)} type="password" autoComplete="new-password" placeholder="新密码" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 disabled:opacity-50" />
+          <input value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} type="password" autoComplete="current-password" placeholder="当前密码" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20 disabled:opacity-50" />
+          <input value={newPassword} onChange={(event) => setNewPassword(event.target.value)} type="password" autoComplete="new-password" placeholder="新密码" disabled={!passwordIdentity} className="w-full rounded-2xl border border-white/10 bg-ink-950/70 px-4 py-3 text-slate-50 outline-none placeholder:text-slate-500 focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20 disabled:opacity-50" />
           {message && <p className="rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-emerald-200">{message}</p>}
           {error && <p className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-rose-200">{error}</p>}
           <button disabled={!passwordIdentity || submitting} className="studio-button-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">{submitting ? '更新中...' : '更新密码'}</button>

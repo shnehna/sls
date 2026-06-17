@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { ArrowsClockwise, MusicNote, WarningCircle } from '@phosphor-icons/react'
 import type { TranscriptCue, TranscriptJob } from '../api/types'
 import { formatTime } from '../utils/format'
 import BookmarkCueButton from './BookmarkCueButton'
@@ -19,6 +20,7 @@ interface Props {
   episodeTitle?: string
   podcastTitle?: string
   hasRemoteTranscript?: boolean
+  reservePracticeControls?: boolean
   onImportTranscript?: () => void
   onCreateJob?: () => void
   onRefresh?: () => void
@@ -39,6 +41,7 @@ export default function Transcript({
   episodeTitle,
   podcastTitle,
   hasRemoteTranscript,
+  reservePracticeControls = false,
   onImportTranscript,
   onCreateJob,
   onRefresh,
@@ -72,8 +75,10 @@ export default function Transcript({
   if (status === 'processing') {
     return (
       <section className="studio-transcript-surface p-8 text-center">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-aurora-300/30 bg-aurora-300/10 text-2xl text-aurora-300">↻</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">正在生成同步字幕</h3>
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-ember-300/30 bg-ember-300/10 text-2xl text-ember-500">
+          <ArrowsClockwise weight="bold" aria-hidden="true" />
+        </div>
+        <h3 className="font-sans text-2xl font-semibold tracking-[-.02em] text-paper-900">正在生成同步字幕</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
           {job ? `后端语音识别服务 ${job.provider} 正在${job.status.replace(/_/g, ' ')}。页面会自动刷新。` : '后端语音识别正在从音频生成逐句字幕。'}
         </p>
@@ -90,8 +95,10 @@ export default function Transcript({
   if (status === 'error') {
     return (
       <section className="studio-transcript-surface p-8 text-center">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-danger/30 bg-danger/10 text-2xl text-danger">!</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">字幕暂不可用</h3>
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-danger/30 bg-danger/10 text-2xl text-danger">
+          <WarningCircle weight="bold" aria-hidden="true" />
+        </div>
+        <h3 className="font-sans text-2xl font-semibold tracking-[-.02em] text-paper-900">字幕暂不可用</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
           {error || '字幕无法加载或生成。'}
         </p>
@@ -106,8 +113,10 @@ export default function Transcript({
   if (cues.length === 0) {
     return (
       <section className="studio-transcript-surface p-8 text-center">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-paper-300/25 bg-white/40 text-2xl text-paper-300">♪</div>
-        <h3 className="font-display text-2xl font-bold tracking-[-.04em] text-paper-900">没有找到同步字幕</h3>
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-paper-300/25 bg-white/40 text-2xl text-paper-300">
+          <MusicNote weight="fill" aria-hidden="true" />
+        </div>
+        <h3 className="font-sans text-2xl font-semibold tracking-[-.02em] text-paper-900">没有找到同步字幕</h3>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-paper-700/75">
           {hasRemoteTranscript
             ? '这一集有远程字幕信息。导入后可以解析并保存为可重复练习的句子。'
@@ -130,13 +139,16 @@ export default function Transcript({
     )
   }
 
+  const transcriptHeightClass = reservePracticeControls
+    ? 'h-[calc(100dvh-38rem)] min-h-[12rem] lg:h-[calc(100dvh-26rem)] lg:min-h-0'
+    : 'h-[calc(100dvh-30rem)] min-h-[14rem] lg:h-[calc(100dvh-26rem)] lg:min-h-0'
+
   return (
-    <section className="studio-transcript-surface flex min-h-[70vh] flex-col lg:h-[calc(100vh-8rem)]">
-      <header className="sticky top-0 z-10 border-b border-paper-700/10 bg-paper-50/82 px-5 py-4 backdrop-blur-xl sm:px-6">
+    <section className={`studio-transcript-surface flex flex-col ${transcriptHeightClass}`}>
+      <header className="sticky top-0 z-10 border-b border-paper-700/10 bg-paper-50/88 px-5 py-3 backdrop-blur-xl sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[.18em] text-paper-300">字幕</p>
-            <h2 className="mt-1 font-display text-3xl font-bold tracking-[-.04em] text-paper-900">跟着字幕练习</h2>
+            <h2 className="font-sans text-lg font-semibold text-paper-900">字幕练习</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {source === 'stored' && <span className="speaker-badge">已保存</span>}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
+import { MusicNote, Pause, Play } from '@phosphor-icons/react'
 import { saveEpisodeProgress } from '../api/library'
 import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
@@ -29,7 +30,9 @@ function PlayerArtwork({ src, title, compact }: { src?: string; title: string; c
           aria-label={title}
         />
       ) : (
-        <div className="grid h-full w-full place-items-center bg-ink-800/80 text-2xl text-ember-300">♪</div>
+        <div className="grid h-full w-full place-items-center bg-ink-800/80 text-2xl text-ember-300">
+          <MusicNote weight="fill" aria-hidden="true" />
+        </div>
       )}
     </div>
   )
@@ -116,9 +119,9 @@ export default function AudioPlayer({ compact = false, embedded = false, hideRat
         <div className="flex items-center gap-3">
           <button onClick={togglePlay} className={playButtonClass} aria-label={state.isPlaying ? '暂停' : '播放'}>
             {state.isPlaying ? (
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h3v12H5V4Zm7 0h3v12h-3V4Z" /></svg>
+              <Pause className="h-5 w-5" weight="fill" aria-hidden="true" />
             ) : (
-              <svg className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 3.9v12.2c0 .8.9 1.3 1.6.9l9.2-6.1c.6-.4.6-1.4 0-1.8L7.9 3c-.7-.4-1.6.1-1.6.9Z" /></svg>
+              <Play className="ml-0.5 h-5 w-5" weight="fill" aria-hidden="true" />
             )}
           </button>
 
@@ -167,9 +170,9 @@ export default function AudioPlayer({ compact = false, embedded = false, hideRat
 
         <button onClick={togglePlay} className={playButtonClass} aria-label={state.isPlaying ? '暂停' : '播放'}>
           {state.isPlaying ? (
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4h3v12H5V4Zm7 0h3v12h-3V4Z" /></svg>
+            <Pause className="h-5 w-5" weight="fill" aria-hidden="true" />
           ) : (
-            <svg className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 3.9v12.2c0 .8.9 1.3 1.6.9l9.2-6.1c.6-.4.6-1.4 0-1.8L7.9 3c-.7-.4-1.6.1-1.6.9Z" /></svg>
+            <Play className="ml-0.5 h-5 w-5" weight="fill" aria-hidden="true" />
           )}
         </button>
 
@@ -177,8 +180,8 @@ export default function AudioPlayer({ compact = false, embedded = false, hideRat
           <div className={compact ? 'flex items-start gap-4' : 'flex items-center justify-between gap-3'}>
             {compact && <PlayerArtwork src={artwork} title={episode.title} compact />}
             <div className="min-w-0 flex-1">
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-aurora-300">正在播放</p>
-              <h3 className={`${compact ? 'mt-2 line-clamp-3 font-display text-2xl font-bold leading-tight tracking-[-.04em]' : 'mt-1 truncate text-sm font-semibold sm:text-base'} text-slate-50`}>
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-ember-200">正在播放</p>
+              <h3 className={`${compact ? 'mt-2 line-clamp-3 font-sans text-xl font-semibold leading-tight tracking-[-.02em]' : 'mt-1 truncate text-sm font-semibold sm:text-base'} text-slate-50`}>
                 {episode.title}
               </h3>
               {compact && episode.feedTitle && <p className="mt-2 truncate text-sm text-slate-400">{episode.feedTitle}</p>}
@@ -212,7 +215,7 @@ export default function AudioPlayer({ compact = false, embedded = false, hideRat
                 id={compact ? 'episode-playback-rate' : 'playback-rate'}
                 value={state.playbackRate}
                 onChange={(event) => setRate(Number(event.target.value))}
-                className="rounded-xl border border-white/10 bg-ink-950/80 px-3 py-2 font-mono text-xs text-slate-100 outline-none focus:border-aurora-300 focus:ring-2 focus:ring-aurora-300/20"
+                className="rounded-xl border border-white/10 bg-ink-950/80 px-3 py-2 font-mono text-xs text-slate-100 outline-none focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20"
                 aria-label="播放速度"
               >
                 {[0.65, 0.8, 1, 1.15, 1.35, 1.5, 2].map((rate) => <option key={rate} value={rate}>{rate}×</option>)}

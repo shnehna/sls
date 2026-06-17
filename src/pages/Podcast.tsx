@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { MusicNote } from '@phosphor-icons/react'
 import EpisodeCard from '../components/EpisodeCard'
 import SavedPodcastButton from '../components/SavedPodcastButton'
 import { useEpisodes } from '../hooks/useEpisodes'
@@ -10,7 +11,11 @@ function PodcastArtwork({ src, title }: { src?: string; title: string }) {
   const [failed, setFailed] = useState(false)
 
   if (!src || failed) {
-    return <div className="grid h-full w-full place-items-center bg-ink-800 text-4xl text-ember-300">♪</div>
+    return (
+      <div className="grid h-full w-full place-items-center bg-ink-800 text-4xl text-ember-300">
+        <MusicNote weight="fill" aria-hidden="true" />
+      </div>
+    )
   }
 
   return (
@@ -36,7 +41,7 @@ export default function Podcast() {
   return (
     <div className="space-y-7 pb-28">
       <Link to="/" className="inline-flex items-center font-mono text-[11px] font-semibold uppercase tracking-[.16em] text-slate-400 transition hover:text-ember-200">
-        ← 返回首页
+        返回首页
       </Link>
 
       {loadingPodcast ? (
@@ -46,7 +51,7 @@ export default function Podcast() {
       ) : podcast && (
         <section className="studio-panel p-5 sm:p-7">
           <div className="flex flex-col gap-6 sm:flex-row">
-            <div className="h-36 w-36 flex-shrink-0 overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[.06] shadow-glow sm:h-44 sm:w-44">
+            <div className="h-36 w-36 flex-shrink-0 overflow-hidden rounded-console border border-white/10 bg-white/[.06] shadow-glow sm:h-44 sm:w-44">
               <PodcastArtwork src={podcast.artwork || podcast.image} title={podcast.title} />
             </div>
             <div className="min-w-0 flex-1">

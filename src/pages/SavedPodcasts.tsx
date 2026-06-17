@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MusicNote } from '@phosphor-icons/react'
 import { getEpisodeProgressList, getTranscriptBookmarks, type EpisodeProgressItem, type TranscriptBookmarkItem } from '../api/library'
 import ProgressCard from '../components/ProgressCard'
 import { useAuth } from '../context/AuthContext'
@@ -20,13 +21,13 @@ export default function SavedPodcasts() {
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">这里是你为集中跟读练习保存的播客。</p>
       </header>
       {savedPodcasts.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[.05] p-6 text-slate-300">还没有收藏播客。<Link to="/search?q=conversation" className="text-aurora-200">去找一个收藏。</Link></div>
+        <div className="rounded-2xl border border-white/10 bg-white/[.05] p-6 text-slate-300">还没有收藏播客。<Link to="/search?q=conversation" className="text-amber-100 hover:text-white">去找一个收藏。</Link></div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {savedPodcasts.map((podcast) => (
             <div key={podcast.id} className="studio-card flex gap-4 p-4">
               <Link to={`/podcast/${podcast.podcastId}`} className="grid h-20 w-20 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-white/[.06] text-2xl text-ember-300">
-                {podcast.image ? <img src={podcast.image} alt="" className="h-full w-full object-cover" /> : '♪'}
+                {podcast.image ? <img src={podcast.image} alt="" className="h-full w-full object-cover" /> : <MusicNote weight="fill" aria-hidden="true" />}
               </Link>
               <div className="min-w-0 flex-1">
                 <Link to={`/podcast/${podcast.podcastId}`} className="font-semibold text-slate-50 hover:text-ember-100">{podcast.title || `播客 ${podcast.podcastId}`}</Link>
