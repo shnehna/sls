@@ -12,3 +12,5 @@ pnpm-debug.log*
 .claude
 .wrangler
 .dev.vars
+docs
+migrations
