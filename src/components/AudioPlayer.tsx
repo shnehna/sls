@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
-import { MusicNote, Pause, Play } from '@phosphor-icons/react'
+import { FastForward, MusicNote, Pause, Play, Rewind } from '@phosphor-icons/react'
 import { saveEpisodeProgress } from '../api/library'
 import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
@@ -107,6 +107,10 @@ export default function AudioPlayer({ compact = false, embedded = false, hideRat
     seek(Math.max(0, Math.min(duration, ratio * duration)))
   }
 
+  const skipBy = (seconds: number) => {
+    seek(Math.max(0, Math.min(duration, state.currentTime + seconds)))
+  }
+
   const playButtonClass = compact
     ? 'grid h-14 w-14 flex-shrink-0 place-items-center rounded-2xl bg-ember-300 text-ink-950 shadow-ember transition duration-200 hover:-translate-y-0.5 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-ember-300 focus:ring-offset-2 focus:ring-offset-ink-950'
     : 'grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl bg-ember-300 text-ink-950 shadow-ember transition duration-200 hover:-translate-y-0.5 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-ember-300 focus:ring-offset-2 focus:ring-offset-ink-950'
@@ -144,18 +148,40 @@ export default function AudioPlayer({ compact = false, embedded = false, hideRat
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">音量</span>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={state.volume}
-            onChange={(event) => setVolume(Number(event.target.value))}
-            className="min-w-0 flex-1 accent-ember-300"
-            aria-label="音量"
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => skipBy(-15)} className="studio-button-ghost gap-2 !px-3 !py-2" aria-label="后退 15 秒">
+            <Rewind className="h-4 w-4" weight="fill" aria-hidden="true" />
+            <span>15 秒</span>
+          </button>
+          <button type="button" onClick={() => skipBy(30)} className="studio-button-ghost gap-2 !px-3 !py-2" aria-label="前进 30 秒">
+            <FastForward className="h-4 w-4" weight="fill" aria-hidden="true" />
+            <span>30 秒</span>
+          </button>
+
+          {!hideRateControl && (
+            <select
+              value={state.playbackRate}
+              onChange={(event) => setRate(Number(event.target.value))}
+              className="rounded-xl border border-white/10 bg-ink-950/80 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none focus:border-ember-300 focus:ring-2 focus:ring-ember-300/20"
+              aria-label="播放速度"
+            >
+              {[0.65, 0.8, 1, 1.15, 1.35, 1.5, 2].map((rate) => <option key={rate} value={rate}>{rate}×</option>)}
+            </select>
+          )}
+
+          <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3 sm:flex-none">
+            <span className="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">音量</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={state.volume}
+              onChange={(event) => setVolume(Number(event.target.value))}
+              className="w-28 accent-ember-300 sm:w-36"
+              aria-label="音量"
+            />
+          </div>
         </div>
       </div>
     </>

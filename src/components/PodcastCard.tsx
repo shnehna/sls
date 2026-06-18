@@ -19,7 +19,7 @@ export default function PodcastCard({ podcast, saveCount, onSaveCountChange }: P
 
   return (
     <article className="studio-card group flex gap-4 p-4">
-      <Link to={`/podcast/${podcast.id}`} className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[.06] shadow-glow sm:h-24 sm:w-24">
+      <Link to={`/podcast/${podcast.id}`} aria-label={`查看播客：${podcast.title}`} className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[.06] shadow-glow sm:h-24 sm:w-24">
         {artwork && !imageFailed ? (
           <img
             src={artwork}

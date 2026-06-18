@@ -1,6 +1,6 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useRef, useEffect, type FormEvent } from 'react'
-import { GithubLogo, MagnifyingGlass } from '@phosphor-icons/react'
+import { GithubLogo, List, MagnifyingGlass, X } from '@phosphor-icons/react'
 import AudioPlayer from './AudioPlayer'
 import { useAuth } from '../context/AuthContext'
 
@@ -10,6 +10,7 @@ export default function Layout() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [accountOpen, setAccountOpen] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const { user, loading, logout } = useAuth()
@@ -23,6 +24,7 @@ export default function Layout() {
 
   useEffect(() => {
     setAccountOpen(false)
+    setMobileNavOpen(false)
   }, [location.pathname])
 
   const handleSearch = (e: FormEvent) => {
@@ -82,15 +84,21 @@ export default function Layout() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="在 GitHub 上为 ShadowCast 点 Star"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-ember-300/35 bg-ember-300/10 px-3 text-sm font-semibold text-amber-100 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-ember-300/65 hover:bg-ember-300/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-ember-300 focus:ring-offset-2 focus:ring-offset-ink-950"
+              className="hidden h-10 items-center justify-center gap-2 rounded-xl border border-ember-300/35 bg-ember-300/10 px-3 text-sm font-semibold text-amber-100 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-ember-300/65 hover:bg-ember-300/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-ember-300 focus:ring-offset-2 focus:ring-offset-ink-950 sm:inline-flex"
             >
               <GithubLogo className="h-4 w-4" weight="fill" aria-hidden="true" />
               <span className="hidden sm:inline">GitHub Star</span>
             </a>
 
             <button
-              onClick={() => setSearchOpen(!searchOpen)}
+              type="button"
+              onClick={() => {
+                setSearchOpen((open) => !open)
+                setMobileNavOpen(false)
+              }}
               className="studio-button-ghost !px-3 !py-2"
+              aria-label="搜索"
+              aria-expanded={searchOpen}
             >
               <MagnifyingGlass className="h-4 w-4" weight="bold" aria-hidden="true" />
               <span className="ml-2 hidden sm:inline">搜索</span>
@@ -110,6 +118,7 @@ export default function Layout() {
                   onClick={() => setAccountOpen((open) => !open)}
                   className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[.06] px-2.5 py-2 text-sm text-slate-100 transition hover:bg-white/10"
                   aria-expanded={accountOpen}
+                  aria-label={`打开 ${user.displayName} 的账号菜单`}
                 >
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt="" className="h-7 w-7 rounded-xl object-cover" />
@@ -129,14 +138,38 @@ export default function Layout() {
                 )}
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavOpen((open) => !open)
+                setSearchOpen(false)
+              }}
+              className="studio-button-ghost !px-3 !py-2 md:hidden"
+              aria-label={mobileNavOpen ? '关闭导航菜单' : '打开导航菜单'}
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-navigation"
+            >
+              {mobileNavOpen ? <X className="h-4 w-4" weight="bold" aria-hidden="true" /> : <List className="h-4 w-4" weight="bold" aria-hidden="true" />}
+            </button>
           </div>
         </div>
 
-        {!loading && !user && (
-          <div className="mx-auto flex max-w-7xl gap-2 px-4 pb-3 sm:hidden">
-            <Link to="/auth/login" className="studio-button-ghost flex-1 justify-center !px-3 !py-2">登录</Link>
-            <Link to="/auth/register" className="studio-button-primary flex-1 justify-center !px-3 !py-2">注册</Link>
-          </div>
+        {mobileNavOpen && (
+          <nav id="mobile-navigation" aria-label="移动端导航" className="mx-auto grid max-w-7xl gap-2 border-t border-white/10 px-4 py-3 md:hidden">
+            <NavLink to="/" end className={navLinkClass}>首页</NavLink>
+            <NavLink to="/search?q=conversation" className={navLinkClass}>练习播客</NavLink>
+            <NavLink to="/library" className={navLinkClass}>我的资料库</NavLink>
+            <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl px-3 py-2 font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+              GitHub 项目
+            </a>
+            {!loading && !user && (
+              <div className="mt-1 grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
+                <Link to="/auth/login" className="studio-button-ghost justify-center !px-3 !py-2">登录</Link>
+                <Link to="/auth/register" className="studio-button-primary justify-center !px-3 !py-2">注册</Link>
+              </div>
+            )}
+          </nav>
         )}
 
         {searchOpen && (
@@ -160,8 +193,15 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-white/10 bg-ink-950/50 py-5 text-center text-xs text-slate-500">
-        数据来自 <a href="https://podcastindex.org" target="_blank" rel="noopener noreferrer" className="font-medium text-amber-100 hover:text-white">PodcastIndex.org</a>
+      <footer className="border-t border-white/10 bg-ink-950/50 px-4 py-6 text-xs text-slate-500">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 sm:flex-row">
+          <p>数据来自 <a href="https://podcastindex.org" target="_blank" rel="noopener noreferrer" className="font-medium text-amber-100 hover:text-white">PodcastIndex.org</a></p>
+          <nav aria-label="页脚导航" className="flex items-center gap-4">
+            <Link to="/privacy" className="transition hover:text-slate-200">隐私说明</Link>
+            <Link to="/terms" className="transition hover:text-slate-200">使用条款</Link>
+            <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" className="transition hover:text-slate-200">开源代码</a>
+          </nav>
+        </div>
       </footer>
 
       {showMiniPlayer && <AudioPlayer />}
