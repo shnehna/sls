@@ -160,7 +160,7 @@ export default function Episode() {
   const hasTranscript = !!(episode.transcripts?.length || episode.transcriptUrl)
 
   return (
-    <div className="space-y-4 pb-80 xl:pb-44">
+    <div className="space-y-4 [--episode-player-clearance:20rem] pb-[calc(var(--episode-player-clearance)+env(safe-area-inset-bottom))] xl:[--episode-player-clearance:11rem]">
       <header className="rounded-console border border-white/10 bg-white/[.045] p-3 shadow-panel backdrop-blur-xl sm:p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -213,7 +213,7 @@ export default function Episode() {
         <LockedTranscriptPanel />
       )}
 
-      <div className="fixed bottom-3 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-7xl -translate-x-1/2 sm:w-[calc(100%-3rem)]">
+      <div className="fixed bottom-[calc(.75rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-7xl -translate-x-1/2 sm:w-[calc(100%-3rem)]">
         <EpisodeAudioControls
           showShadowControls={!!user}
           playbackRate={state.playbackRate}

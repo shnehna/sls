@@ -193,16 +193,18 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-white/10 bg-ink-950/50 px-4 py-6 text-xs text-slate-500">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 sm:flex-row">
-          <p>数据来自 <a href="https://podcastindex.org" target="_blank" rel="noopener noreferrer" className="font-medium text-amber-100 hover:text-white">PodcastIndex.org</a></p>
-          <nav aria-label="页脚导航" className="flex items-center gap-4">
-            <Link to="/privacy" className="transition hover:text-slate-200">隐私说明</Link>
-            <Link to="/terms" className="transition hover:text-slate-200">使用条款</Link>
-            <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" className="transition hover:text-slate-200">开源代码</a>
-          </nav>
-        </div>
-      </footer>
+      {!isEpisodeRoute && (
+        <footer className="border-t border-white/10 bg-ink-950/50 px-4 py-6 text-xs text-slate-500">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 sm:flex-row">
+            <p>数据来自 <a href="https://podcastindex.org" target="_blank" rel="noopener noreferrer" className="font-medium text-amber-100 hover:text-white">PodcastIndex.org</a></p>
+            <nav aria-label="页脚导航" className="flex items-center gap-4">
+              <Link to="/privacy" className="transition hover:text-slate-200">隐私说明</Link>
+              <Link to="/terms" className="transition hover:text-slate-200">使用条款</Link>
+              <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" className="transition hover:text-slate-200">开源代码</a>
+            </nav>
+          </div>
+        </footer>
+      )}
 
       {showMiniPlayer && <AudioPlayer />}
     </div>
